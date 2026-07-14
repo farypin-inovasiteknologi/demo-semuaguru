@@ -489,3 +489,10 @@
     apiCall('autoSaveNilaiUjian', [ta, smt, kls, mpl, jenis, nis, fld, skor]).then(() => showToast(`Data ${fld} NIS ${nis} tersimpan.`)).catch(err => { console.error(err); });
   }
 
+  function toggleKonversi() {
+      const isChecked = document.getElementById('toggle-konversi').checked;
+      document.getElementById('konv-min').disabled = !isChecked;
+      document.getElementById('konv-max').disabled = !isChecked;
+      document.getElementById('btn-jalankan-konv').disabled = !isChecked;
+  }
+
