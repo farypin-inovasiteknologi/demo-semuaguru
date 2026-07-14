@@ -414,11 +414,13 @@ function lupaPassword() {
       try {
         const res = await apiCall('sendPasswordToEmail', [email]);
         if (!res || !res.success) {
+          Swal.hideLoading();
           Swal.showValidationMessage(res ? res.message : 'Respons tidak valid dari server.');
           return false;
         }
         return res;
       } catch (error) {
+        Swal.hideLoading();
         Swal.showValidationMessage(`Koneksi Gagal / Fungsi belum tersedia: ${error.message}`);
         return false;
       }
@@ -855,6 +857,7 @@ function loadTahunAjaran() {
   apiCall('readData', ['Tahun_Ajaran']).then(d => {
     appState.tahunAjaran = d;
     renderTahunAjaran();
+    hideLoader();
   }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
