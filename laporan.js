@@ -361,6 +361,7 @@
 async function exportNilaiHarianBukaJadwal() {
   const kelas = document.getElementById('buka-info-kelas').innerText;
   const mapel = document.getElementById('buka-info-mapel').innerText;
+  const tanggal = document.getElementById('buka-info-tanggal').innerText;
   const semester = document.getElementById('buka-nil-smt').value || '1';
   const ta = appState.activeTA;
 
@@ -371,13 +372,19 @@ async function exportNilaiHarianBukaJadwal() {
 
   showLoader();
   try {
-    const data = await apiCall('readData', ['Nilai']) || [];
+    let [data, jurnalData] = await Promise.all([
+      apiCall('readData', ['Nilai']),
+      apiCall('readData', ['Jurnal'])
+    ]);
+    data = data || [];
+    jurnalData = jurnalData || [];
     hideLoader();
     
     const filtered = data.filter(row => 
       String(row.Kelas).trim() === String(kelas).trim() && 
       String(row.Mapel).trim() === String(mapel).trim() && 
-      String(row.Tahun_Ajaran).trim() === String(ta).trim()
+      String(row.Tahun_Ajaran).trim() === String(ta).trim() &&
+      String(row.Tanggal).trim() === String(tanggal).trim()
     );
 
     const siswaKelas = appState.siswa.filter(s => String(s.Kelas).trim() === String(kelas).trim());
@@ -398,34 +405,38 @@ async function exportNilaiHarianBukaJadwal() {
     const borderStyle = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
 
+    const jur = jurnalData.find(j => 
+      String(j.Tanggal).trim() === String(tanggal).trim() &&
+      String(j.Kelas).trim() === String(kelas).trim() &&
+      String(j.Mapel).trim() === String(mapel).trim() &&
+      String(j.Tahun_Ajaran).trim() === String(ta).trim()
+    );
+    let materi = jur ? (jur.Materi || '') : '-';
+
     worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${ta}`;
     worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${semester}`;
     worksheet.getCell('A5').value = 'Kelas'; worksheet.getCell('C5').value = `: ${kelas}`;
     worksheet.getCell('A6').value = 'Mapel'; worksheet.getCell('C6').value = `: ${mapel}`;
-    [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
+    worksheet.getCell('A7').value = 'Tanggal'; worksheet.getCell('C7').value = `: ${tanggal}`;
+    worksheet.getCell('A8').value = 'Materi Ajar'; worksheet.getCell('C8').value = `: ${materi}`;
+    [3,4,5,6,7,8].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
 
-    let tanggals = new Set();
-    filtered.forEach(row => { if (row['Tanggal']) tanggals.add(String(row['Tanggal']).trim()); });
-    tanggals = Array.from(tanggals).sort();
-
-    let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
-    let cols = [{ width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }];
-    
-    tanggals.forEach(t => {
-       let tglStr = t.split('-').reverse().join('/');
-       headerArr.push(`${tglStr} P`, `${tglStr} K`, `${tglStr} S`, `${tglStr} CTTN`);
-       cols.push({ width: 8 }, { width: 8 }, { width: 8 }, { width: 15 });
-    });
-
+    let cols = [
+      { width: 5 }, { width: 15 }, { width: 35 }, { width: 5 },
+      { width: 8 }, { width: 8 }, { width: 8 }, { width: 15 }
+    ];
     worksheet.columns = cols;
     worksheet.mergeCells(1, 1, 1, cols.length);
+    
     const titleCell = worksheet.getCell('A1');
     titleCell.value = 'REKAPITULASI NILAI HARIAN SISWA';
     titleCell.font = titleFont;
     titleCell.alignment = centerAlign;
 
-    worksheet.getRow(8).values = headerArr;
-    const headerRow = worksheet.getRow(8);
+    let headerArr = ['NO', 'NIS', 'NAMA', 'JK', 'P', 'K', 'S', 'CTTN'];
+    worksheet.getRow(10).values = headerArr;
+    
+    const headerRow = worksheet.getRow(10);
     headerRow.eachCell((cell) => {
       cell.font = headerFont;
       cell.fill = headerFill;
@@ -434,17 +445,15 @@ async function exportNilaiHarianBukaJadwal() {
     });
     headerRow.height = 25;
 
-    let currentRow = 9;
+    let currentRow = 11;
     siswaKelas.forEach((s, idx) => {
         let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
-        tanggals.forEach(t => {
-            const nil = filtered.find(r => String(r.NIS).trim() === String(s.NIS).trim() && String(r.Tanggal).trim() === t);
-            let p = nil ? (parseFloat(nil.Pengetahuan) || 0) : 0;
-            let k = nil ? (parseFloat(nil.Keterampilan) || 0) : 0;
-            let skp = nil ? (nil.Sikap || '') : '';
-            let cttn = nil ? (nil.Catatan || '') : '';
-            rowValues.push(p || '', k || '', skp, cttn);
-        });
+        const nil = filtered.find(r => String(r.NIS).trim() === String(s.NIS).trim());
+        let p = nil ? (parseFloat(nil.Pengetahuan) || 0) : 0;
+        let k = nil ? (parseFloat(nil.Keterampilan) || 0) : 0;
+        let skp = nil ? (nil.Sikap || '') : '';
+        let cttn = nil ? (nil.Catatan || '') : '';
+        rowValues.push(p || '', k || '', skp, cttn);
 
         const row = worksheet.addRow(rowValues);
         row.eachCell((cell, colNumber) => {
@@ -460,7 +469,8 @@ async function exportNilaiHarianBukaJadwal() {
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Laporan_NilaiHarian_${kelas}_${mapel}_Sem${semester}.xlsx`;
+    let tglName = tanggal.replace(/\//g, '-');
+    link.download = `Laporan_NilaiHarian_${kelas}_${mapel}_${tglName}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -476,6 +486,7 @@ window.exportNilaiHarianBukaJadwal = exportNilaiHarianBukaJadwal;
 async function exportAbsensiHarianBukaJadwal() {
   const kelas = document.getElementById('buka-info-kelas').innerText;
   const mapel = document.getElementById('buka-info-mapel').innerText;
+  const tanggal = document.getElementById('buka-info-tanggal').innerText;
   const semester = document.getElementById('buka-nil-smt').value || '1';
   const ta = appState.activeTA;
 
@@ -492,7 +503,8 @@ async function exportAbsensiHarianBukaJadwal() {
     const filtered = data.filter(row => 
       String(row.Kelas).trim() === String(kelas).trim() && 
       String(row.Mapel).trim() === String(mapel).trim() && 
-      String(row.Tahun_Ajaran).trim() === String(ta).trim()
+      String(row.Tahun_Ajaran).trim() === String(ta).trim() &&
+      String(row.Tanggal).trim() === String(tanggal).trim()
     );
 
     const siswaKelas = appState.siswa.filter(s => String(s.Kelas).trim() === String(kelas).trim());
@@ -517,21 +529,14 @@ async function exportAbsensiHarianBukaJadwal() {
     worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${semester}`;
     worksheet.getCell('A5').value = 'Kelas'; worksheet.getCell('C5').value = `: ${kelas}`;
     worksheet.getCell('A6').value = 'Mapel'; worksheet.getCell('C6').value = `: ${mapel}`;
-    [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
+    worksheet.getCell('A7').value = 'Tanggal'; worksheet.getCell('C7').value = `: ${tanggal}`;
+    [3,4,5,6,7].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
 
-    let tanggals = new Set();
-    filtered.forEach(row => { if (row['Tanggal']) tanggals.add(String(row['Tanggal']).trim()); });
-    tanggals = Array.from(tanggals).sort();
-
-    let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
-    let cols = [{ width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }];
+    let cols = [
+      { width: 5 }, { width: 15 }, { width: 35 }, { width: 5 },
+      { width: 10 }, { width: 15 }, { width: 25 }
+    ];
     
-    tanggals.forEach(t => {
-       let tglStr = t.split('-').reverse().join('/');
-       headerArr.push(`${tglStr} Status`, `${tglStr} Keterangan`, `${tglStr} Bukti`);
-       cols.push({ width: 10 }, { width: 15 }, { width: 25 });
-    });
-
     worksheet.columns = cols;
     worksheet.mergeCells(1, 1, 1, cols.length);
     const titleCell = worksheet.getCell('A1');
@@ -539,8 +544,9 @@ async function exportAbsensiHarianBukaJadwal() {
     titleCell.font = titleFont;
     titleCell.alignment = centerAlign;
 
-    worksheet.getRow(8).values = headerArr;
-    const headerRow = worksheet.getRow(8);
+    let headerArr = ['NO', 'NIS', 'NAMA', 'JK', 'STATUS', 'KETERANGAN', 'BUKTI DUKUNG'];
+    worksheet.getRow(9).values = headerArr;
+    const headerRow = worksheet.getRow(9);
     headerRow.eachCell((cell) => {
       cell.font = headerFont;
       cell.fill = headerFill;
@@ -550,18 +556,17 @@ async function exportAbsensiHarianBukaJadwal() {
     headerRow.height = 25;
 
     const ketMap = { 'H': 'Hadir', 'I': 'Izin', 'S': 'Sakit', 'A': 'Alfa' };
-    let currentRow = 9;
+    let currentRow = 10;
     siswaKelas.forEach((s, idx) => {
         let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
-        tanggals.forEach(t => {
-            const abs = filtered.find(r => String(r.NIS).trim() === String(s.NIS).trim() && String(r.Tanggal).trim() === t);
-            if (abs) {
-                let stat = (abs.Status || '').trim().toUpperCase();
-                rowValues.push(stat, ketMap[stat] || '', abs.Bukti_Dukung || '');
-            } else {
-                rowValues.push('', '', '');
-            }
-        });
+        
+        const abs = filtered.find(r => String(r.NIS).trim() === String(s.NIS).trim());
+        if (abs) {
+            let stat = (abs.Status || '').trim().toUpperCase();
+            rowValues.push(stat, ketMap[stat] || '', abs.Bukti_Dukung || '');
+        } else {
+            rowValues.push('', '', '');
+        }
 
         const row = worksheet.addRow(rowValues);
         row.eachCell((cell, colNumber) => {
@@ -577,7 +582,8 @@ async function exportAbsensiHarianBukaJadwal() {
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Laporan_AbsensiHarian_${kelas}_${mapel}_Sem${semester}.xlsx`;
+    let tglName = tanggal.replace(/\//g, '-');
+    link.download = `Laporan_AbsensiHarian_${kelas}_${mapel}_${tglName}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
