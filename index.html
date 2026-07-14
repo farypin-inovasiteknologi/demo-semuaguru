@@ -425,21 +425,26 @@
                 </div>
 
                 <div class="row mb-3 bg-light p-2 rounded align-items-center border border-primary mx-0">
-                    <div class="col-md-3 fw-bold text-primary"><i class="fa-solid fa-calculator"></i> Konversi Otomatis:</div>
+                    <div class="col-md-3 fw-bold text-primary d-flex align-items-center gap-2">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="toggle-konversi" onchange="toggleKonversi()">
+                        </div>
+                        <span><i class="fa-solid fa-calculator"></i> Konversi Otomatis</span>
+                    </div>
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-white">Min Target</span>
-                            <input type="number" id="konv-min" class="form-control" placeholder="Misal: 70" value="70">
+                            <input type="number" id="konv-min" class="form-control" placeholder="Misal: 70" value="70" disabled>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text bg-white">Max Target</span>
-                            <input type="number" id="konv-max" class="form-control" placeholder="Misal: 95" value="95">
+                            <input type="number" id="konv-max" class="form-control" placeholder="Misal: 95" value="95" disabled>
                         </div>
                     </div>
                     <div class="col-md-3 text-end">
-                        <button class="btn btn-sm btn-primary w-100 fw-bold" onclick="konversiNilaiOtomatis()"><i class="fa-solid fa-wand-magic-sparkles"></i> Jalankan Konversi</button>
+                        <button id="btn-jalankan-konv" class="btn btn-sm btn-primary w-100 fw-bold" onclick="konversiNilaiOtomatis()" disabled><i class="fa-solid fa-wand-magic-sparkles"></i> Jalankan Konversi</button>
                     </div>
                 </div>
 
