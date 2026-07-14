@@ -50,8 +50,14 @@ function initApp() {
 
     // Load UI Landing/Login
     document.getElementById('landing-nama-sekolah').innerText = settings['Nama_Sekolah'] || 'UPT Sekolah Dasar';
-    if (settings['Logo_Kiri']) document.getElementById('landing-logo-kiri').src = settings['Logo_Kiri'];
-    if (settings['Logo_Kanan']) document.getElementById('landing-logo-kanan').src = settings['Logo_Kanan'];
+    if (settings['Logo_Kiri']) {
+      document.getElementById('landing-logo-kiri').src = settings['Logo_Kiri'];
+      const sidebarLogo = document.getElementById('sidebar-logo-app');
+      if (sidebarLogo) sidebarLogo.src = settings['Logo_Kiri'];
+    }
+    if (settings['Logo_Kanan']) {
+      document.getElementById('landing-logo-kanan').src = settings['Logo_Kanan'];
+    }
 
     if (settings['Foto_Guru']) document.getElementById('login-foto-guru').src = settings['Foto_Guru'];
     document.getElementById('login-nama-guru').innerText = settings['Nama_Guru'] || 'Nama Guru';
