@@ -1,4 +1,4 @@
-const CACHE_NAME = 'semua-guru-v1';
+const CACHE_NAME = 'semua-guru-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -21,38 +21,25 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Intercept Request & Strategi Cache First / Network Fallback
+// Intercept Request & Strategi Network First / Cache Fallback
 self.addEventListener('fetch', (event) => {
-  // Jangan cache POST request atau request ke Google Script API
   if (event.request.method !== 'GET' || event.request.url.includes('script.google.com')) return;
   
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        // Kembalikan file dari cache jika ada
-        if (response) {
-          return response;
+        // Network sukses, simpan di cache
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        // Jika tidak ada di cache, ambil dari internet
-        return fetch(event.request).then(
-          function(response) {
-            // Cek apakah response valid
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Simpan response baru ke cache (dinamis)
-            var responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        ).catch(() => {
-          // Offline fallback
-        });
+        return response;
+      })
+      .catch(() => {
+        // Jika offline, ambil dari cache
+        return caches.match(event.request);
       })
   );
 });
