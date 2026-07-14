@@ -413,14 +413,22 @@
     const minKet = arrKet.length > 0 ? Math.min(...arrKet) : 0;
     const maxKet = arrKet.length > 0 ? Math.max(...arrKet) : 100;
     
+    // Pastikan target min < max, jika terbalik maka tukar
+    let tMin = Math.min(minTarget, maxTarget);
+    let tMax = Math.max(minTarget, maxTarget);
+    
     let updateArray = [];
     
     // Fungsi konversi linear
     const calcKonv = (val, minAsli, maxAsli) => {
         if (isNaN(val)) return '-';
-        if (maxAsli === minAsli) return maxTarget; // Jika semua nilai sama
-        let hasil = minTarget + ((val - minAsli) / (maxAsli - minAsli)) * (maxTarget - minTarget);
-        return Math.round(hasil); // Pembulatan ke bilangan bulat terdekat
+        if (maxAsli === minAsli) return tMax; // Jika semua nilai sama
+        let hasil = tMin + ((val - minAsli) / (maxAsli - minAsli)) * (tMax - tMin);
+        // Pastikan tidak melampaui batas target akibat pembulatan
+        hasil = Math.round(hasil);
+        if (hasil > tMax) hasil = tMax;
+        if (hasil < tMin) hasil = tMin;
+        return hasil;
     };
 
     rows.forEach(tr => {
@@ -494,5 +502,49 @@
       document.getElementById('konv-min').disabled = !isChecked;
       document.getElementById('konv-max').disabled = !isChecked;
       document.getElementById('btn-jalankan-konv').disabled = !isChecked;
+      
+      if (!isChecked) {
+          Swal.fire({
+             title: 'Matikan Konversi?',
+             text: 'Kolom nilai konversi akan dihapus/direset dari database. Lanjutkan?',
+             icon: 'warning',
+             showCancelButton: true,
+             confirmButtonText: 'Ya, Hapus',
+             cancelButtonText: 'Batal'
+          }).then(res => {
+             if (res.isConfirmed) {
+                 resetKonversiNilai();
+             } else {
+                 document.getElementById('toggle-konversi').checked = true;
+                 toggleKonversi(); // Revert UI
+             }
+          });
+      }
+  }
+
+  function resetKonversiNilai() {
+        const ta = document.getElementById('filter-uji-ta').value;
+        const smt = document.getElementById('filter-uji-smt').value;
+        const jenis = document.getElementById('filter-uji-jenis').value;
+        const kls = document.getElementById('filter-uji-kelas').value;
+        const mpl = document.getElementById('filter-uji-mapel').value;
+        
+        Swal.fire({
+            title: 'Menghapus...',
+            text: 'Mereset nilai konversi',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
+        apiCall('resetKonversiNilaiUjian', [ta, smt, kls, mpl, jenis]).then(() => {
+            // Hapus nilai dari tampilan UI tanpa harus memuat ulang semuanya
+            document.querySelectorAll('.konv-peng').forEach(el => el.innerText = '-');
+            document.querySelectorAll('.konv-ket').forEach(el => el.innerText = '-');
+            Swal.fire('Selesai', 'Konversi berhasil dinonaktifkan dan direset!', 'success');
+        }).catch(err => {
+            Swal.fire('Error', 'Gagal mereset: ' + err.message, 'error');
+            document.getElementById('toggle-konversi').checked = true;
+            toggleKonversi(); // Revert
+        });
   }
 
