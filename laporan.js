@@ -214,56 +214,77 @@
          });
       }
       else if (jenisLaporan === 'nilai_ujian') {
+         let jenisUjiLabel = filterValues['Jenis_Ujian'] || 'Ujian Sumatif';
          // Header Info
          worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${filterValues['Tahun_Ajaran']}`;
          worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${filterValues['Semester']}`;
          worksheet.getCell('A5').value = 'Kelas'; worksheet.getCell('C5').value = `: ${filterValues['Kelas']}`;
-         [3,4,5].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
+         worksheet.getCell('A6').value = 'Jenis Ujian'; worksheet.getCell('C6').value = `: ${jenisUjiLabel}`;
+         [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
 
-         let jenisUji = new Set();
-         filtered.forEach(row => { if (row['Jenis_Ujian']) jenisUji.add(row['Jenis_Ujian']); });
-         jenisUji = Array.from(jenisUji).sort();
-
-         let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
+         // Define Headers
          let cols = [
-           { width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }
+           { width: 5 }, { width: 35 }, { width: 15 }, { width: 5 }, // No, Nama, NIS, JK
+           { width: 10 }, { width: 10 }, // Asli (Peng, Ket)
+           { width: 10 }, { width: 10 }, // Konv (Peng, Ket)
+           { width: 15 }, { width: 35 }  // Sikap, Catatan
          ];
-         jenisUji.forEach(j => {
-            headerArr.push(`${j} Peng.`, `${j} Ket.`, `${j} Sikap`, `${j} Catatan`);
-            cols.push({ width: 10 }, { width: 10 }, { width: 10 }, { width: 25 });
-         });
-
          worksheet.columns = cols;
+
          worksheet.mergeCells(1, 1, 1, cols.length); // Dynamic title merge
          const titleCell = worksheet.getCell('A1');
          titleCell.value = 'REKAPITULASI NILAI UJIAN SISWA';
          titleCell.font = titleFont;
          titleCell.alignment = centerAlign;
 
-         worksheet.getRow(7).values = headerArr;
-         
-         const headerRow = worksheet.getRow(7);
-         headerRow.eachCell((cell) => {
-           cell.font = headerFont;
-           cell.fill = headerFill;
-           cell.alignment = centerAlign;
-           cell.border = borderStyle;
-         });
-         headerRow.height = 25;
+         // Row 8: Top level headers
+         worksheet.getRow(8).values = ['NO', 'NAMA SISWA', 'NIS', 'L/P', 'NILAI ASLI', '', 'NILAI RAPOT / KONVERSI', '', 'SIKAP', 'CATATAN'];
+         // Row 9: Sub level headers
+         worksheet.getRow(9).values = ['', '', '', '', 'Pengetahuan', 'Keterampilan', 'Pengetahuan', 'Keterampilan', '', ''];
 
-         let currentRow = 8;
-         siswaKelas.forEach((s, idx) => {
-             let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
-             jenisUji.forEach(j => {
-                 const uRow = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Jenis_Ujian === j);
-                 rowValues.push(uRow ? uRow.Pengetahuan : '', uRow ? uRow.Keterampilan : '', uRow ? uRow.Sikap : '', uRow ? uRow.Catatan : '');
+         // Merge logic
+         worksheet.mergeCells('A8:A9'); // NO
+         worksheet.mergeCells('B8:B9'); // NAMA
+         worksheet.mergeCells('C8:C9'); // NIS
+         worksheet.mergeCells('D8:D9'); // L/P
+         worksheet.mergeCells('E8:F8'); // NILAI ASLI
+         worksheet.mergeCells('G8:H8'); // NILAI KONVERSI
+         worksheet.mergeCells('I8:I9'); // SIKAP
+         worksheet.mergeCells('J8:J9'); // CATATAN
+         
+         [8, 9].forEach(r => {
+             const row = worksheet.getRow(r);
+             row.height = 25;
+             row.eachCell((cell) => {
+               cell.font = headerFont;
+               cell.fill = headerFill;
+               cell.alignment = centerAlign;
+               cell.border = borderStyle;
              });
+         });
+
+         let currentRow = 10;
+         siswaKelas.forEach((s, idx) => {
+             const uRow = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Jenis_Ujian === jenisUjiLabel);
+             
+             let rowValues = [
+                 idx + 1, 
+                 s.Nama, 
+                 s.NIS, 
+                 s.L_P || '',
+                 uRow ? uRow.Pengetahuan : '',
+                 uRow ? uRow.Keterampilan : '',
+                 uRow ? uRow.Konversi_Peng : '',
+                 uRow ? uRow.Konversi_Ket : '',
+                 uRow ? uRow.Sikap : '',
+                 uRow ? uRow.Catatan : ''
+             ];
              
              const row = worksheet.addRow(rowValues);
              row.eachCell((cell, colNumber) => {
                cell.font = normalFont;
                cell.border = borderStyle;
-               if (colNumber === 3) cell.alignment = leftAlign;
+               if (colNumber === 2 || colNumber === 10) cell.alignment = leftAlign; // Nama and Catatan Left aligned
                else cell.alignment = centerAlign;
              });
              currentRow++;
@@ -375,7 +396,7 @@
       imageSmoothingQuality: 'high',
     });
 
-    const base64Data = canvas.toDataURL('image/png');
+    const base64Data = canvas.toDataURL('image/jpeg', 0.6);
 
     if (targetId === 'kiri') {
       document.getElementById('prev-logo-kiri').src = base64Data;
