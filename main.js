@@ -2,7 +2,7 @@
 // REGISTRI URL DATABASE MULTI-TENANT
 // ==========================================
 const TENANT_REGISTRY = {
-  "guru01": "https://script.google.com/macros/s/AKfycbw90AkohzzX_IuctlD9Zpd1pXrKEwHQ0oKRyVwwj5tMKYHhePCzMq3no-6BeAQISrVFBA/exec",
+  "guru01": "https://script.google.com/macros/s/AKfycbxe60-M4nU-1fJJSExgGE2UCYmLnjNYXjQ2DoqBHqSZwK8Ow1rvADdI3IbyjBrZZ9xeIA/exec",
   "guru02": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec",
   "demo": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec"
 };
@@ -357,13 +357,13 @@ function previewBackground(input) {
   if (input.files && input.files[0]) {
     let file = input.files[0];
     let reader = new FileReader();
-    
+
     reader.onload = function (e) {
       let img = new Image();
-      img.onload = function() {
+      img.onload = function () {
         let canvas = document.createElement('canvas');
         let ctx = canvas.getContext('2d');
-        
+
         let MAX_WIDTH = 800; // compress dimension
         let MAX_HEIGHT = 600;
         let width = img.width;
@@ -383,15 +383,15 @@ function previewBackground(input) {
         canvas.width = width;
         canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
-        
+
         // Compress to JPEG 40%
         let dataurl = canvas.toDataURL('image/jpeg', 0.4);
-        
+
         // Google Sheets cell character limit is 50,000
         if (dataurl.length > 49000) {
-           Swal.fire('Error', 'Gambar masih terlalu besar/kompleks. Silakan gunakan gambar yang lebih sederhana atau dengan resolusi yang lebih kecil.', 'error');
-           input.value = '';
-           return;
+          Swal.fire('Error', 'Gambar masih terlalu besar/kompleks. Silakan gunakan gambar yang lebih sederhana atau dengan resolusi yang lebih kecil.', 'error');
+          input.value = '';
+          return;
         }
 
         document.getElementById('base64-bg-login').value = dataurl;
@@ -666,7 +666,23 @@ function autoHari(tglStr) {
 function simpanData(e, sheetName, modalId) {
   e.preventDefault(); showLoader();
   const fd = new FormData(e.target);
-  let data = {}; fd.forEach((v, k) => data[k] = v);
+  let data = {};
+  fd.forEach((v, k) => {
+    if (sheetName === 'Siswa') {
+      if (k === 'Nama') v = v.toUpperCase();
+      if (k === 'Tempat_Lahir') v = v.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+    data[k] = v;
+  });
+
+  if (sheetName === 'Siswa') {
+    let nisn = String(data['NISN'] || '').trim();
+    if (nisn.length !== 10) {
+      hideLoader();
+      return Swal.fire('Error', 'NISN wajib diisi 10 angka bulat!', 'error');
+    }
+  }
+
   if (appState.activeTA && sheetName !== 'Pengaturan' && sheetName !== 'Tahun_Ajaran') {
     data['Tahun_Ajaran'] = appState.activeTA;
   }
@@ -712,18 +728,29 @@ function prosesImportSiswa() {
       }
 
       // Mapping properties if necessary, assuming headers match exactly
-      let payload = json.map(row => ({
-        Tahun_Ajaran: appState.activeTA,
-        NIS: row['NIS'] || '',
-        NISN: row['NISN'] || '',
-        Nama: row['Nama'] || row['Nama Lengkap'] || '',
-        Tempat_Lahir: row['Tempat_Lahir'] || row['Tempat Lahir'] || '',
-        Tanggal_Lahir: row['Tanggal_Lahir'] || row['Tanggal Lahir'] || '',
-        L_P: row['L_P'] || row['L/P'] || row['Jenis Kelamin'] || '',
-        Nama_Ayah: row['Nama_Ayah'] || row['Nama Ayah'] || '',
-        Nama_Ibu: row['Nama_Ibu'] || row['Nama Ibu'] || '',
-        Kelas: activeKelolaSiswaKelas // Override with current active class modal
-      })).filter(r => r.NIS && r.Nama);
+      let payload = json.map(row => {
+        let nName = (row['Nama'] || row['Nama Lengkap'] || '').toUpperCase();
+        let nTempat = (row['Tempat_Lahir'] || row['Tempat Lahir'] || '');
+        if (nTempat) nTempat = String(nTempat).split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+
+        let nNisn = String(row['NISN'] || '').trim();
+        if (nNisn && nNisn.length > 0 && nNisn.length < 10) {
+          nNisn = nNisn.padStart(10, '0');
+        }
+
+        return {
+          Tahun_Ajaran: appState.activeTA,
+          NIS: row['NIS'] || '',
+          NISN: nNisn,
+          Nama: nName,
+          Tempat_Lahir: nTempat,
+          Tanggal_Lahir: row['Tanggal_Lahir'] || row['Tanggal Lahir'] || '',
+          L_P: row['L_P'] || row['L/P'] || row['Jenis Kelamin'] || '',
+          Nama_Ayah: row['Nama_Ayah'] || row['Nama Ayah'] || '',
+          Nama_Ibu: row['Nama_Ibu'] || row['Nama Ibu'] || '',
+          Kelas: activeKelolaSiswaKelas // Override with current active class modal
+        };
+      }).filter(r => r.NIS && r.Nama);
 
       if (payload.length === 0) {
         hideLoader();
