@@ -258,6 +258,8 @@
         max-width: 450px;
         text-align: center;
         animation: popIn 0.5s ease-out;
+        position: relative;
+        z-index: 1;
     }
     
     .glass-card h2, .glass-card h4, .glass-card p, .glass-card label {
