@@ -2,9 +2,9 @@
 // REGISTRI URL DATABASE MULTI-TENANT
 // ==========================================
 const TENANT_REGISTRY = {
-  "guru01": "https://script.google.com/macros/s/AKfycbznsQA7CWkzkhkxX63LdvQar-cA3e5sVJ1AHOBJYZ72DjD7e2IpP1JWePip28R6Hwrb8A/exec/exec",
+  "guru01": "https://script.google.com/macros/s/AKfycbyG7sACxrTCwV_ISkv-g9gqJjQk5OM-5Hwy_N1QGUl_AJu5Gj_0EBvCvdTV2w-6U0KMxA/exec",
   "guru02": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec",
-  "demo": "https://script.google.com/macros/s/AKfycbyG7sACxrTCwV_ISkv-g9gqJjQk5OM-5Hwy_N1QGUl_AJu5Gj_0EBvCvdTV2w-6U0KMxA/exec"
+  "demo": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec"
 };
 
 let GAS_API_URL = "";
@@ -46,7 +46,7 @@ let appState = {
 
 document.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
-  const tenantId = urlParams.get('id') || 'default';
+  const tenantId = urlParams.get('id'); // Tidak ada fallback 'default'
   GAS_API_URL = TENANT_REGISTRY[tenantId];
 
   const today = new Date().toISOString().split('T')[0];
@@ -58,7 +58,21 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     hideLoader();
     document.getElementById('landing-container').style.display = 'flex';
-    document.getElementById('landing-nama-sekolah').innerText = "URL Sekolah Tidak Valid";
+    document.getElementById('landing-nama-sekolah').innerText = "Akses Dibatasi";
+
+    // Sembunyikan tombol Masuk Aplikasi
+    const btnMasuk = document.querySelector('#landing-container .btn-modern');
+    if (btnMasuk) {
+      btnMasuk.style.display = 'none';
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Akses Ditolak',
+      text: 'Anda tidak bisa login karena ID URL Anda belum terdaftar.',
+      confirmButtonText: 'Tutup',
+      allowOutsideClick: false
+    });
   }
 });
 
