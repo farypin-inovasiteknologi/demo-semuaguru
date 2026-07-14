@@ -1187,7 +1187,7 @@
                                 <div class="alert alert-info py-2 mb-0 flex-grow-1 me-3"><i class="fa-solid fa-info-circle"></i> Pilih kehadiran.
                                     Tersimpan otomatis. Upload surat izin/sakit di kolom kanan. (Gambar dikompres otomatis
                                     <100KB, PDF maks 300KB)</div>
-                                <button class="btn btn-success" onclick="exportAbsensiHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i> Unduh Absensi Harian</button>
+                                <button type="button" class="btn btn-success" onclick="exportAbsensiHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i> Unduh Absensi Harian</button>
                             </div>
                                     <div class="table-responsive">
                                         <table class="table table-bordered align-middle">
@@ -1213,7 +1213,7 @@
                                     <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i
                                             class="fa-solid fa-bolt"></i> Ketik angka dan
                                         pindah kolom (Tab). Nilai tersimpan otomatis per pertemuan ini!</div>
-                                    <button class="btn btn-success" onclick="exportNilaiHarianBukaJadwal()"><i
+                                    <button type="button" class="btn btn-success" onclick="exportNilaiHarianBukaJadwal()"><i
                                             class="fa-solid fa-file-excel"></i> Unduh Laporan Nilai Harian</button>
                                 </div>
                                 <!-- Hidden inputs for Nilai to rely on specific TA/Smt -->
@@ -1243,7 +1243,7 @@
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i class="fa-solid fa-bolt"></i> Ketik isi jurnal
                                         dan berpindah kolom. Data akan tersimpan otomatis!</div>
-                                    <button class="btn btn-success" onclick="exportJurnalHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i> Unduh Jurnal Harian</button>
+                                    <button type="button" class="btn btn-success" onclick="exportJurnalHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i> Unduh Jurnal Harian</button>
                                 </div>
                                 <form id="form-buka-jurnal" class="row g-3">
                                     <input type="hidden" id="buka-jur-id">
@@ -1430,9 +1430,9 @@
         <!-- ExcelJS -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
-        <script src="nilai.js"></script>
-        <script src="laporan.js"></script>
-        <script src="main.js"></script>
+        <script src="nilai.js?v=4"></script>
+        <script src="laporan.js?v=4"></script>
+        <script src="main.js?v=4"></script>
     <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
