@@ -165,7 +165,7 @@ function initApp() {
       hideLoader();
       document.getElementById('landing-container').style.display = 'flex';
     }
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 // UI Tools
@@ -291,7 +291,7 @@ function setMode(mode) {
     Swal.fire('Berhasil', `Mode Mengajar diset ke: ${res}`, 'success');
     refreshDropdowns();
     hideLoader();
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function simpanPengaturanSistem() {
@@ -309,7 +309,7 @@ function simpanPengaturanSistem() {
   apiCall('saveMultipleSettings', [data]).then(() => {
     hideLoader();
     Swal.fire('Tersimpan', 'Pengaturan sistem diperbarui', 'success');
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function simpanPengaturanProfil() {
@@ -331,7 +331,7 @@ function simpanPengaturanProfil() {
   apiCall('saveMultipleSettings', [data]).then(() => {
     hideLoader();
     Swal.fire('Tersimpan', 'Profil Guru diperbarui', 'success');
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function simpanPengaturanAkun() {
@@ -350,20 +350,53 @@ function simpanPengaturanAkun() {
   apiCall('saveMultipleSettings', [dataSave]).then(() => {
     hideLoader();
     Swal.fire('Sukses', 'Data akun dan otentikasi berhasil diperbarui.', 'success').then(() => window.location.reload());
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function previewBackground(input) {
   if (input.files && input.files[0]) {
     let file = input.files[0];
-    if (file.size > 2 * 1024 * 1024) {
-      Swal.fire('Error', 'Ukuran gambar maksimal 2MB', 'error');
-      input.value = '';
-      return;
-    }
     let reader = new FileReader();
+    
     reader.onload = function (e) {
-      document.getElementById('base64-bg-login').value = e.target.result;
+      let img = new Image();
+      img.onload = function() {
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
+        
+        let MAX_WIDTH = 800; // compress dimension
+        let MAX_HEIGHT = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Compress to JPEG 40%
+        let dataurl = canvas.toDataURL('image/jpeg', 0.4);
+        
+        // Google Sheets cell character limit is 50,000
+        if (dataurl.length > 49000) {
+           Swal.fire('Error', 'Gambar masih terlalu besar/kompleks. Silakan gunakan gambar yang lebih sederhana atau dengan resolusi yang lebih kecil.', 'error');
+           input.value = '';
+           return;
+        }
+
+        document.getElementById('base64-bg-login').value = dataurl;
+      }
+      img.src = e.target.result;
     }
     reader.readAsDataURL(file);
   }
@@ -429,7 +462,7 @@ function refreshRelasiData() {
     renderRelasiCards('Guru Mapel', 'list-gurumapel', 'Mata Pelajaran', 'Daftar Kelas');
     refreshDropdowns();
     hideLoader();
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function renderRelasiCards(tipe, containerId, labelInduk, labelAnak) {
@@ -533,7 +566,7 @@ function simpanRelasi() {
   apiCall('insertData', ['Relasi_Mapel', { Tipe_Mode: tipe, Induk: induk, Anak: anak, Tahun_Ajaran: appState.activeTA }]).then(() => {
     bootstrap.Modal.getInstance(document.getElementById('modalRelasi')).hide();
     refreshRelasiData();
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function hapusIndukRelasi(tipe, induk) {
@@ -544,7 +577,7 @@ function hapusIndukRelasi(tipe, induk) {
       toDel.forEach(item => {
         apiCall('deleteData', ['Relasi_Mapel', item.ID]).then(() => {
           count++; if (count === toDel.length) refreshRelasiData();
-        }).catch(err => { console.error(err); });
+        }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
       });
       if (toDel.length === 0) hideLoader();
     }
@@ -643,7 +676,7 @@ function simpanData(e, sheetName, modalId) {
     Swal.fire('Sukses', 'Data berhasil disimpan', 'success');
     if (sheetName === 'Siswa') loadSiswa();
     if (sheetName === 'Jadwal') loadJadwal();
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function downloadTemplateSiswa() {
@@ -725,7 +758,7 @@ function hapusRecord(sheet, id, callback) {
       apiCall('deleteData', [sheet, id]).then(() => {
         Swal.fire('Terhapus', '', 'success');
         if (callback) callback(); else hideLoader();
-      }).catch(err => { console.error(err); });
+      }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
     }
   });
 }
@@ -796,7 +829,7 @@ function loadTahunAjaran() {
   apiCall('readData', ['Tahun_Ajaran']).then(d => {
     appState.tahunAjaran = d;
     renderTahunAjaran();
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function renderTahunAjaran() {
@@ -892,7 +925,7 @@ function loadDashboardStats(namaTA) {
   apiCall('readData', ['Siswa']).then(data => {
     const count = data.filter(d => d.Tahun_Ajaran === namaTA).length;
     document.getElementById('dash-stat-siswa').innerText = count;
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 
   // Count Kelas & Mapel
   apiCall('readData', ['Relasi_Mapel']).then(data => {
@@ -901,13 +934,13 @@ function loadDashboardStats(namaTA) {
     const mapelSet = new Set(taData.map(d => d.Anak).filter(Boolean));
     document.getElementById('dash-stat-kelas').innerText = kelasSet.size;
     document.getElementById('dash-stat-mapel').innerText = mapelSet.size;
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 
   // Count Jadwal
   apiCall('readData', ['Jadwal']).then(data => {
     const count = data.filter(d => d.Tahun_Ajaran === namaTA).length;
     document.getElementById('dash-stat-jadwal').innerText = count;
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function masukTahunAjaran(namaTA) {
@@ -978,7 +1011,7 @@ function loadSiswa() {
     appState.siswa = appState.activeTA ? d.filter(x => x.Tahun_Ajaran === appState.activeTA) : [];
     renderTabelSiswa();
     hideLoader();
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function lihatSiswa(id) {
@@ -1067,7 +1100,7 @@ function loadJadwal() {
     populateJadwalFilters(d);
     renderTabelJadwal();
     hideLoader();
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 function populateJadwalFilters(data) {
@@ -1169,7 +1202,7 @@ document.getElementById('arsip-file-input').addEventListener('change', function 
       } else {
         Swal.fire('Error', res.message, 'error');
       }
-    }).catch(err => { console.error(err); });
+    }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
   };
   reader.readAsDataURL(file);
 });
@@ -1259,11 +1292,11 @@ function hapusFileUrl(jadwalId, type) {
       apiCall('readData', ['Jadwal']).then(d => {
         appState.jadwalData = d;
         bukaJadwal(jadwalId);
-      }).catch(err => { console.error(err); });
+      }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
     } else {
       Swal.fire('Error', res.message, 'error');
     }
-  }).catch(err => { console.error(err); });
+  }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
 
 
