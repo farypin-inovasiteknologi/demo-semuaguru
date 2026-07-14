@@ -360,17 +360,109 @@
 
         const mkCat = (fld, val) => `<input type="text" class="form-control form-control-sm" placeholder="Catatan Ujian" value="${val}" onblur="triggerAutoSaveNilaiUjian('${s.NIS}', '${fld}', this.value)">`;
         
-        tb.innerHTML += `<tr>
+        tb.innerHTML += `<tr data-nis="${s.NIS}">
             <td class="align-middle text-center">${s.NIS}</td>
             <td class="text-start fw-bold align-middle">${s.Nama}</td>
             <td class="align-middle text-center">${s.L_P || '-'}</td>
             <td>${mkInp('Pengetahuan', s.Pengetahuan)}</td>
+            <td class="bg-secondary bg-opacity-10 align-middle text-center fw-bold text-primary konv-peng">${s.Konversi_Peng || '-'}</td>
             <td>${mkInp('Keterampilan', s.Keterampilan)}</td>
+            <td class="bg-secondary bg-opacity-10 align-middle text-center fw-bold text-primary konv-ket">${s.Konversi_Ket || '-'}</td>
             <td>${mkSikap('Sikap', s.Sikap)}</td>
             <td>${mkCat('Catatan', s.Catatan)}</td>
           </tr>`;
       });
     }).catch(err => { console.error(err); });
+  }
+
+  function konversiNilaiOtomatis() {
+    const minTarget = parseFloat(document.getElementById('konv-min').value);
+    const maxTarget = parseFloat(document.getElementById('konv-max').value);
+    
+    if (isNaN(minTarget) || isNaN(maxTarget)) {
+        Swal.fire('Error', 'Target Terendah dan Tertinggi harus berupa angka!', 'error');
+        return;
+    }
+    
+    const rows = document.querySelectorAll('#tbody-MatrixNilaiUjian tr[data-nis]');
+    if (rows.length === 0) {
+        Swal.fire('Error', 'Tidak ada data siswa untuk dikonversi!', 'error');
+        return;
+    }
+
+    let arrPeng = [];
+    let arrKet = [];
+    
+    // Kumpulkan nilai asli
+    rows.forEach(tr => {
+        let inps = tr.querySelectorAll('input[type="number"]');
+        let peng = parseFloat(inps[0].value);
+        let ket = parseFloat(inps[1].value);
+        if (!isNaN(peng)) arrPeng.push(peng);
+        if (!isNaN(ket)) arrKet.push(ket);
+    });
+    
+    if (arrPeng.length === 0 && arrKet.length === 0) {
+        Swal.fire('Info', 'Belum ada nilai asli yang diinput!', 'info');
+        return;
+    }
+
+    // Cari min max dari data yang ada
+    const minPeng = arrPeng.length > 0 ? Math.min(...arrPeng) : 0;
+    const maxPeng = arrPeng.length > 0 ? Math.max(...arrPeng) : 100;
+    const minKet = arrKet.length > 0 ? Math.min(...arrKet) : 0;
+    const maxKet = arrKet.length > 0 ? Math.max(...arrKet) : 100;
+    
+    let updateArray = [];
+    
+    // Fungsi konversi linear
+    const calcKonv = (val, minAsli, maxAsli) => {
+        if (isNaN(val)) return '-';
+        if (maxAsli === minAsli) return maxTarget; // Jika semua nilai sama
+        let hasil = minTarget + ((val - minAsli) / (maxAsli - minAsli)) * (maxTarget - minTarget);
+        return Math.round(hasil); // Pembulatan ke bilangan bulat terdekat
+    };
+
+    rows.forEach(tr => {
+        let nis = tr.getAttribute('data-nis');
+        let inps = tr.querySelectorAll('input[type="number"]');
+        
+        let pengAsli = parseFloat(inps[0].value);
+        let ketAsli = parseFloat(inps[1].value);
+        
+        let konvPeng = calcKonv(pengAsli, minPeng, maxPeng);
+        let konvKet = calcKonv(ketAsli, minKet, maxKet);
+        
+        // Update UI
+        tr.querySelector('.konv-peng').innerText = konvPeng;
+        tr.querySelector('.konv-ket').innerText = konvKet;
+        
+        if (konvPeng !== '-') updateArray.push({ nis: nis, field: 'Konversi_Peng', val: konvPeng });
+        if (konvKet !== '-') updateArray.push({ nis: nis, field: 'Konversi_Ket', val: konvKet });
+    });
+    
+    if (updateArray.length > 0) {
+        const ta = document.getElementById('filter-uji-ta').value;
+        const smt = document.getElementById('filter-uji-smt').value;
+        const jenis = document.getElementById('filter-uji-jenis').value;
+        const kls = document.getElementById('filter-uji-kelas').value;
+        const mpl = document.getElementById('filter-uji-mapel').value;
+        
+        Swal.fire({
+            title: 'Menyimpan...',
+            text: 'Menerapkan dan menyimpan nilai konversi',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
+        apiCall('batchSaveNilaiUjian', [ta, smt, kls, mpl, jenis, updateArray]).then(() => {
+            Swal.fire('Selesai', 'Konversi berhasil dan tersimpan!', 'success');
+        }).catch(err => {
+            Swal.fire('Error', 'Gagal menyimpan: ' + err.message, 'error');
+        });
+    } else {
+        Swal.fire('Info', 'Tidak ada nilai yang dikonversi.', 'info');
+    }
   }
 
   function validateAndSaveUjian(nis, fld, el) {
