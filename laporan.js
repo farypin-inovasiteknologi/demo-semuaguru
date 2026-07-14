@@ -414,11 +414,11 @@ async function exportNilaiHarianBukaJadwal() {
     
     tanggals.forEach(t => {
        let tglStr = t.split('-').reverse().join('/');
-       headerArr.push(`${tglStr} P`, `${tglStr} K`, `${tglStr} S`);
-       cols.push({ width: 8 }, { width: 8 }, { width: 8 });
+       headerArr.push(`${tglStr} P`, `${tglStr} K`, `${tglStr} S`, `${tglStr} CTTN`);
+       cols.push({ width: 8 }, { width: 8 }, { width: 8 }, { width: 15 });
     });
-    headerArr.push('RATA-RATA');
-    cols.push({ width: 12 });
+    headerArr.push('RATA-RATA P', 'RATA-RATA K');
+    cols.push({ width: 12 }, { width: 12 });
 
     worksheet.columns = cols;
     worksheet.mergeCells(1, 1, 1, cols.length);
@@ -440,17 +440,21 @@ async function exportNilaiHarianBukaJadwal() {
     let currentRow = 9;
     siswaKelas.forEach((s, idx) => {
         let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
-        let total = 0; let count = 0;
+        let totalP = 0; let countP = 0;
+        let totalK = 0; let countK = 0;
         tanggals.forEach(t => {
             const nil = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Tanggal === t);
-            let p = nil ? (parseFloat(nil.Pengulangan_P) || 0) : 0;
-            let k = nil ? (parseFloat(nil.Pengulangan_K) || 0) : 0;
+            let p = nil ? (parseFloat(nil.Pengetahuan) || 0) : 0;
+            let k = nil ? (parseFloat(nil.Keterampilan) || 0) : 0;
             let skp = nil ? (nil.Sikap || '') : '';
-            rowValues.push(p || '', k || '', skp);
-            if (p > 0) { total += p; count++; }
+            let cttn = nil ? (nil.Catatan || '') : '';
+            rowValues.push(p || '', k || '', skp, cttn);
+            if (p > 0) { totalP += p; countP++; }
+            if (k > 0) { totalK += k; countK++; }
         });
-        let rata = count > 0 ? (total/count).toFixed(2) : '';
-        rowValues.push(rata);
+        let rataP = countP > 0 ? (totalP/countP).toFixed(2) : '';
+        let rataK = countK > 0 ? (totalK/countK).toFixed(2) : '';
+        rowValues.push(rataP, rataK);
 
         const row = worksheet.addRow(rowValues);
         row.eachCell((cell, colNumber) => {
@@ -478,3 +482,216 @@ async function exportNilaiHarianBukaJadwal() {
 }
 
 window.exportNilaiHarianBukaJadwal = exportNilaiHarianBukaJadwal;
+
+async function exportAbsensiHarianBukaJadwal() {
+  const kelas = document.getElementById('buka-info-kelas').innerText;
+  const mapel = document.getElementById('buka-info-mapel').innerText;
+  const semester = document.getElementById('buka-nil-smt').value || '1';
+  const ta = appState.activeTA;
+
+  if (!kelas || !mapel) {
+    Swal.fire('Error', 'Informasi kelas/mapel tidak tersedia. Buka ulang jadwal.', 'error');
+    return;
+  }
+
+  showLoader();
+  try {
+    const data = await apiCall('readData', ['Absensi']) || [];
+    hideLoader();
+    
+    const filtered = data.filter(row => 
+      row.Kelas === kelas && 
+      row.Mapel === mapel && 
+      row.Semester == semester && 
+      row.Tahun_Ajaran === ta
+    );
+
+    const siswaKelas = appState.siswa.filter(s => String(s.Kelas).trim() === String(kelas).trim());
+    if (siswaKelas.length === 0) {
+      Swal.fire('Info', 'Tidak ada data siswa di kelas ini.', 'info');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Absensi_Harian');
+
+    const titleFont = { name: 'Arial', size: 14, bold: true };
+    const subTitleFont = { name: 'Arial', size: 11, bold: true };
+    const headerFont = { name: 'Arial', size: 10, bold: true };
+    const normalFont = { name: 'Arial', size: 10 };
+    const centerAlign = { vertical: 'middle', horizontal: 'center' };
+    const leftAlign = { vertical: 'middle', horizontal: 'left' };
+    const borderStyle = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+
+    worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${ta}`;
+    worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${semester}`;
+    worksheet.getCell('A5').value = 'Kelas'; worksheet.getCell('C5').value = `: ${kelas}`;
+    worksheet.getCell('A6').value = 'Mapel'; worksheet.getCell('C6').value = `: ${mapel}`;
+    [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
+
+    let tanggals = new Set();
+    filtered.forEach(row => { if (row['Tanggal']) tanggals.add(row['Tanggal']); });
+    tanggals = Array.from(tanggals).sort();
+
+    let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
+    let cols = [{ width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }];
+    
+    tanggals.forEach(t => {
+       let tglStr = t.split('-').reverse().join('/');
+       headerArr.push(`${tglStr} H/I/S/A`);
+       cols.push({ width: 15 });
+    });
+
+    worksheet.columns = cols;
+    worksheet.mergeCells(1, 1, 1, cols.length);
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = 'REKAPITULASI ABSENSI HARIAN SISWA';
+    titleCell.font = titleFont;
+    titleCell.alignment = centerAlign;
+
+    worksheet.getRow(8).values = headerArr;
+    const headerRow = worksheet.getRow(8);
+    headerRow.eachCell((cell) => {
+      cell.font = headerFont;
+      cell.fill = headerFill;
+      cell.alignment = centerAlign;
+      cell.border = borderStyle;
+    });
+    headerRow.height = 25;
+
+    const ketMap = { 'H': 'Hadir', 'I': 'Izin', 'S': 'Sakit', 'A': 'Alfa' };
+    let currentRow = 9;
+    siswaKelas.forEach((s, idx) => {
+        let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
+        tanggals.forEach(t => {
+            const abs = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Tanggal === t);
+            let val = '';
+            if (abs && abs.Status) {
+                let stat = abs.Status.trim().toUpperCase();
+                val = ketMap[stat] ? `${stat} - ${ketMap[stat]}` : stat;
+            }
+            rowValues.push(val);
+        });
+
+        const row = worksheet.addRow(rowValues);
+        row.eachCell((cell, colNumber) => {
+          cell.font = normalFont;
+          cell.border = borderStyle;
+          if (colNumber === 3) cell.alignment = leftAlign;
+          else cell.alignment = centerAlign;
+        });
+        currentRow++;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Laporan_AbsensiHarian_${kelas}_${mapel}_Sem${semester}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error(error);
+    hideLoader();
+    Swal.fire('Error', 'Gagal mengekspor data: ' + error.message, 'error');
+  }
+}
+window.exportAbsensiHarianBukaJadwal = exportAbsensiHarianBukaJadwal;
+
+async function exportJurnalHarianBukaJadwal() {
+  const kelas = document.getElementById('buka-info-kelas').innerText;
+  const mapel = document.getElementById('buka-info-mapel').innerText;
+  const ta = appState.activeTA;
+
+  if (!kelas || !mapel) {
+    Swal.fire('Error', 'Informasi kelas/mapel tidak tersedia. Buka ulang jadwal.', 'error');
+    return;
+  }
+
+  showLoader();
+  try {
+    const data = await apiCall('readData', ['Jurnal']) || [];
+    hideLoader();
+    
+    // Filter out Jurnal
+    const filtered = data.filter(row => 
+      row.Kelas === kelas && 
+      row.Mapel === mapel && 
+      row.Tahun_Ajaran === ta
+    );
+
+    if (filtered.length === 0) {
+      Swal.fire('Info', 'Tidak ada data jurnal di kelas ini.', 'info');
+      return;
+    }
+    filtered.sort((a, b) => a.Tanggal.localeCompare(b.Tanggal));
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Jurnal_Harian');
+
+    const titleFont = { name: 'Arial', size: 14, bold: true };
+    const subTitleFont = { name: 'Arial', size: 11, bold: true };
+    const headerFont = { name: 'Arial', size: 10, bold: true };
+    const normalFont = { name: 'Arial', size: 10 };
+    const centerAlign = { vertical: 'middle', horizontal: 'center' };
+    const leftAlign = { vertical: 'top', horizontal: 'left', wrapText: true };
+    const borderStyle = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+    const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+
+    worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${ta}`;
+    worksheet.getCell('A4').value = 'Kelas'; worksheet.getCell('C4').value = `: ${kelas}`;
+    worksheet.getCell('A5').value = 'Mapel'; worksheet.getCell('C5').value = `: ${mapel}`;
+    [3,4,5].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
+
+    let headerArr = ['NO', 'TANGGAL', 'MATERI', 'PERMASALAHAN', 'SOLUSI', 'KETERANGAN'];
+    let cols = [{ width: 5 }, { width: 12 }, { width: 35 }, { width: 30 }, { width: 30 }, { width: 25 }];
+    
+    worksheet.columns = cols;
+    worksheet.mergeCells(1, 1, 1, cols.length);
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = 'JURNAL MENGAJAR HARIAN';
+    titleCell.font = titleFont;
+    titleCell.alignment = centerAlign;
+
+    worksheet.getRow(7).values = headerArr;
+    const headerRow = worksheet.getRow(7);
+    headerRow.eachCell((cell) => {
+      cell.font = headerFont;
+      cell.fill = headerFill;
+      cell.alignment = centerAlign;
+      cell.border = borderStyle;
+    });
+    headerRow.height = 25;
+
+    let currentRow = 8;
+    filtered.forEach((j, idx) => {
+        let tglStr = j.Tanggal ? j.Tanggal.split('-').reverse().join('/') : '';
+        let rowValues = [idx+1, tglStr, j.Materi || '', j.Permasalahan || '', j.Solusi || '', j.Keterangan || ''];
+        
+        const row = worksheet.addRow(rowValues);
+        row.eachCell((cell, colNumber) => {
+          cell.font = normalFont;
+          cell.border = borderStyle;
+          if (colNumber >= 3) cell.alignment = leftAlign;
+          else cell.alignment = centerAlign;
+        });
+        currentRow++;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Jurnal_Mengajar_${kelas}_${mapel}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error(error);
+    hideLoader();
+    Swal.fire('Error', 'Gagal mengekspor data: ' + error.message, 'error');
+  }
+}
+window.exportJurnalHarianBukaJadwal = exportJurnalHarianBukaJadwal;
