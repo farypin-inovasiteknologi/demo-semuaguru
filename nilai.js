@@ -359,15 +359,16 @@
           </select>`;
 
         const mkCat = (fld, val) => `<input type="text" class="form-control form-control-sm" placeholder="Catatan Ujian" value="${val}" onblur="triggerAutoSaveNilaiUjian('${s.NIS}', '${fld}', this.value)">`;
+        const fmtKonv = (val) => (!val || val === '-') ? '-' : Number(val).toFixed(2);
         
         tb.innerHTML += `<tr data-nis="${s.NIS}">
             <td class="align-middle text-center">${s.NIS}</td>
             <td class="text-start fw-bold align-middle">${s.Nama}</td>
             <td class="align-middle text-center">${s.L_P || '-'}</td>
             <td>${mkInp('Pengetahuan', s.Pengetahuan)}</td>
-            <td class="bg-secondary bg-opacity-10 align-middle text-center fw-bold text-primary konv-peng">${s.Konversi_Peng || '-'}</td>
+            <td class="bg-secondary bg-opacity-10 align-middle text-center fw-bold text-primary konv-peng">${fmtKonv(s.Konversi_Peng)}</td>
             <td>${mkInp('Keterampilan', s.Keterampilan)}</td>
-            <td class="bg-secondary bg-opacity-10 align-middle text-center fw-bold text-primary konv-ket">${s.Konversi_Ket || '-'}</td>
+            <td class="bg-secondary bg-opacity-10 align-middle text-center fw-bold text-primary konv-ket">${fmtKonv(s.Konversi_Ket)}</td>
             <td>${mkSikap('Sikap', s.Sikap)}</td>
             <td>${mkCat('Catatan', s.Catatan)}</td>
           </tr>`;
@@ -425,10 +426,9 @@
         if (maxAsli === minAsli) return tMax; // Jika semua nilai sama
         let hasil = tMin + ((val - minAsli) / (maxAsli - minAsli)) * (tMax - tMin);
         // Pastikan tidak melampaui batas target akibat pembulatan
-        hasil = Math.round(hasil);
         if (hasil > tMax) hasil = tMax;
         if (hasil < tMin) hasil = tMin;
-        return hasil;
+        return hasil.toFixed(2);
     };
 
     rows.forEach(tr => {
