@@ -1168,7 +1168,22 @@ function renderTabelJadwal() {
   const perPageStr = document.getElementById('jadwal-per-page') ? document.getElementById('jadwal-per-page').value : '10';
   const perPage = parseInt(perPageStr, 10) || 10;
 
-  if (filterBulan) filtered = filtered.filter(j => (j.Tanggal || '').startsWith(filterBulan));
+  if (filterBulan) {
+    const [fYear, fMonth] = filterBulan.split('-');
+    filtered = filtered.filter(j => {
+      let t = j.Tanggal || '';
+      if (t.startsWith(filterBulan)) return true; // YYYY-MM-DD
+      if (t.includes('/')) {
+        const parts = t.split('/');
+        if (parts.length === 3) {
+          let m = parts[1].padStart(2, '0');
+          let y = parts[2].length === 2 ? '20' + parts[2] : parts[2];
+          if (`${y}-${m}` === filterBulan) return true;
+        }
+      }
+      return false;
+    });
+  }
   if (filterKelas) filtered = filtered.filter(j => j.Kelas === filterKelas);
   if (filterMapel) filtered = filtered.filter(j => j.Mapel === filterMapel);
 
