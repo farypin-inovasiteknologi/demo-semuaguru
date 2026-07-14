@@ -82,12 +82,6 @@
 
       if (jenisLaporan === 'absensi') {
          // Header Info
-         worksheet.mergeCells('A1:AI1');
-         const titleCell = worksheet.getCell('A1');
-         titleCell.value = 'REKAPITULASI ABSENSI SISWA';
-         titleCell.font = titleFont;
-         titleCell.alignment = centerAlign;
-
          worksheet.getCell('A3').value = 'Kelas'; worksheet.getCell('B3').value = `: ${filterValues['Kelas']}`;
          worksheet.getCell('A4').value = 'Mapel'; worksheet.getCell('B4').value = `: ${filterValues['Mapel'] || 'Semua'}`;
          worksheet.getCell('A5').value = 'Bulan'; worksheet.getCell('B5').value = `: ${filterValues['Bulan']}`;
@@ -98,16 +92,21 @@
 
          let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
          let cols = [
-           { width: 5 }, { width: 12 }, { width: 35 }, { width: 5 } // Basic columns
+           { width: 5 }, { width: 15 }, { width: 35 }, { width: 5 } // Basic columns
          ];
          for(let i=1; i<=daysInMonth; i++) {
            headerArr.push(i);
-           cols.push({ width: 3.5 }); // Small columns for days
+           cols.push({ width: 3 }); // Small columns for days
          }
          headerArr.push('H', 'I', 'S', 'A');
          cols.push({ width: 5 }, { width: 5 }, { width: 5 }, { width: 5 });
 
          worksheet.columns = cols;
+         worksheet.mergeCells(1, 1, 1, cols.length); // Dynamic title merge
+         const titleCell = worksheet.getCell('A1');
+         titleCell.value = 'REKAPITULASI ABSENSI SISWA';
+         titleCell.font = titleFont;
+         titleCell.alignment = centerAlign;
          worksheet.getRow(7).values = headerArr;
          
          const headerRow = worksheet.getRow(7);
@@ -147,34 +146,37 @@
          });
       } 
       else if (jenisLaporan === 'nilai_harian') {
-         worksheet.mergeCells('A1:O1');
-         const titleCell = worksheet.getCell('A1');
-         titleCell.value = 'REKAPITULASI NILAI HARIAN SISWA';
-         titleCell.font = titleFont;
-         titleCell.alignment = centerAlign;
-
+         // Header Info
          worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${filterValues['Tahun_Ajaran']}`;
          worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${filterValues['Semester']}`;
          worksheet.getCell('A5').value = 'Kelas'; worksheet.getCell('C5').value = `: ${filterValues['Kelas']}`;
          worksheet.getCell('A6').value = 'Mapel'; worksheet.getCell('C6').value = `: ${filterValues['Mapel']}`;
          [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
 
-         let months = new Set();
-         filtered.forEach(row => { if (row['Bulan']) months.add(row['Bulan']); });
-         months = Array.from(months).sort();
+         let tanggals = new Set();
+         filtered.forEach(row => { if (row['Tanggal']) tanggals.add(row['Tanggal']); });
+         tanggals = Array.from(tanggals).sort();
 
          let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
          let cols = [
-           { width: 5 }, { width: 12 }, { width: 35 }, { width: 5 }
+           { width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }
          ];
-         months.forEach(m => {
-            headerArr.push(`${m} M1`, `${m} M2`, `${m} M3`, `${m} M4`);
-            cols.push({ width: 10 }, { width: 10 }, { width: 10 }, { width: 10 });
+         tanggals.forEach(t => {
+            // Ubah format tanggal jika perlu, atau pakai as-is
+            let tglStr = t.split('-').reverse().join('/');
+            headerArr.push(`${tglStr} P`, `${tglStr} K`, `${tglStr} S`);
+            cols.push({ width: 8 }, { width: 8 }, { width: 8 });
          });
          headerArr.push('RATA-RATA');
          cols.push({ width: 12 });
 
          worksheet.columns = cols;
+         worksheet.mergeCells(1, 1, 1, cols.length); // Dynamic title merge
+         const titleCell = worksheet.getCell('A1');
+         titleCell.value = 'REKAPITULASI NILAI HARIAN SISWA';
+         titleCell.font = titleFont;
+         titleCell.alignment = centerAlign;
+
          worksheet.getRow(8).values = headerArr;
          
          const headerRow = worksheet.getRow(8);
@@ -184,18 +186,18 @@
            cell.alignment = centerAlign;
            cell.border = borderStyle;
          });
-         headerRow.height = 25;
+         headerRow.height = 30;
 
          let currentRow = 9;
          siswaKelas.forEach((s, idx) => {
              let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
              let total = 0, count = 0;
-             months.forEach(m => {
-                 const nRow = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Bulan === m);
-                 ['M1_Nilai', 'M2_Nilai', 'M3_Nilai', 'M4_Nilai'].forEach(col => {
+             tanggals.forEach(t => {
+                 const nRow = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Tanggal === t);
+                 ['Pengetahuan', 'Keterampilan', 'Sikap'].forEach(col => {
                      let val = nRow && nRow[col] ? nRow[col] : '';
                      rowValues.push(val);
-                     if (val !== '') { total += parseFloat(val); count++; }
+                     if (val !== '' && !isNaN(val)) { total += parseFloat(val); count++; }
                  });
              });
              let avg = count > 0 ? Math.round(total / count) : '';
@@ -212,12 +214,7 @@
          });
       }
       else if (jenisLaporan === 'nilai_ujian') {
-         worksheet.mergeCells('A1:O1');
-         const titleCell = worksheet.getCell('A1');
-         titleCell.value = 'REKAPITULASI NILAI UJIAN SISWA';
-         titleCell.font = titleFont;
-         titleCell.alignment = centerAlign;
-
+         // Header Info
          worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${filterValues['Tahun_Ajaran']}`;
          worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${filterValues['Semester']}`;
          worksheet.getCell('A5').value = 'Kelas'; worksheet.getCell('C5').value = `: ${filterValues['Kelas']}`;
@@ -229,14 +226,20 @@
 
          let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
          let cols = [
-           { width: 5 }, { width: 12 }, { width: 35 }, { width: 5 }
+           { width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }
          ];
          jenisUji.forEach(j => {
             headerArr.push(`${j} Peng.`, `${j} Ket.`, `${j} Sikap`, `${j} Catatan`);
-            cols.push({ width: 12 }, { width: 12 }, { width: 12 }, { width: 25 });
+            cols.push({ width: 10 }, { width: 10 }, { width: 10 }, { width: 25 });
          });
 
          worksheet.columns = cols;
+         worksheet.mergeCells(1, 1, 1, cols.length); // Dynamic title merge
+         const titleCell = worksheet.getCell('A1');
+         titleCell.value = 'REKAPITULASI NILAI UJIAN SISWA';
+         titleCell.font = titleFont;
+         titleCell.alignment = centerAlign;
+
          worksheet.getRow(7).values = headerArr;
          
          const headerRow = worksheet.getRow(7);
