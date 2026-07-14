@@ -405,13 +405,12 @@ async function exportNilaiHarianBukaJadwal() {
     const borderStyle = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
     const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
 
-    const jur = jurnalData.find(j => 
+    const jad = appState.jadwalData.find(j => 
       String(j.Tanggal).trim() === String(tanggal).trim() &&
       String(j.Kelas).trim() === String(kelas).trim() &&
-      String(j.Mapel).trim() === String(mapel).trim() &&
-      String(j.Tahun_Ajaran).trim() === String(ta).trim()
+      String(j.Mapel).trim() === String(mapel).trim()
     );
-    let materi = jur ? (jur.Materi || '') : '-';
+    let materi = jad ? (jad.Materi_Harian || '') : '-';
 
     worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${ta}`;
     worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${semester}`;
