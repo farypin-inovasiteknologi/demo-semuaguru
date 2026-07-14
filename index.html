@@ -667,9 +667,13 @@
                                     <strong>Perhatian:</strong> Backup data akan mengunduh seluruh isi database
                                     spreadsheet Anda.
                                 </div>
-                                <button class="btn btn-success me-2" onclick="backupDataJSON()"><i class="fa-solid fa-cloud-arrow-down"></i> Backup Data (JSON)</button>
-                                <button class="btn btn-outline-primary" onclick="document.getElementById('input-restore-db').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Restore DB</button>
-                                <input type="file" id="input-restore-db" style="display:none" accept=".json" onchange="restoreDB(event)">
+                                <button class="btn btn-success me-2" onclick="backupDataJSON()"><i
+                                        class="fa-solid fa-cloud-arrow-down"></i> Backup Data (JSON)</button>
+                                <button class="btn btn-outline-primary"
+                                    onclick="document.getElementById('input-restore-db').click()"><i
+                                        class="fa-solid fa-cloud-arrow-up"></i> Restore DB</button>
+                                <input type="file" id="input-restore-db" style="display:none" accept=".json"
+                                    onchange="restoreDB(event)">
                             </div>
 
                             <!-- Tanda Tangan -->
@@ -1184,27 +1188,31 @@
                         <!-- Absensi -->
                         <div class="tab-pane fade show active" id="buka-absensi">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="alert alert-info py-2 mb-0 flex-grow-1 me-3"><i class="fa-solid fa-info-circle"></i> Pilih kehadiran.
-                                    Tersimpan otomatis. Upload surat izin/sakit di kolom kanan. (Gambar dikompres otomatis
+                                <div class="alert alert-info py-2 mb-0 flex-grow-1 me-3"><i
+                                        class="fa-solid fa-info-circle"></i> Pilih kehadiran.
+                                    Tersimpan otomatis. Upload surat izin/sakit di kolom kanan. (Gambar dikompres
+                                    otomatis
                                     <100KB, PDF maks 300KB)</div>
-                                <button type="button" class="btn btn-success" onclick="exportAbsensiHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i> Unduh Absensi Harian</button>
-                            </div>
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered align-middle">
-                                            <thead class="table-dark text-center">
-                                                <tr>
-                                                    <th width="50" class="text-center align-middle">No</th>
-                                                    <th width="80">NIS</th>
-                                                    <th class="text-start">Nama Siswa</th>
-                                                    <th width="60">L/P</th>
-                                                    <th width="220">Kehadiran (H/I/S/A)</th>
-                                                    <th width="120">Bukti Dukung</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tbody-MatrixAbsensi">
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                        <button type="button" class="btn btn-success"
+                                            onclick="exportAbsensiHarianBukaJadwal()"><i
+                                                class="fa-solid fa-file-excel"></i> Unduh Absensi Harian</button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered align-middle">
+                                        <thead class="table-dark text-center">
+                                            <tr>
+                                                <th width="50" class="text-center align-middle">No</th>
+                                                <th width="80">NIS</th>
+                                                <th class="text-start">Nama Siswa</th>
+                                                <th width="60">L/P</th>
+                                                <th width="220">Kehadiran (H/I/S/A)</th>
+                                                <th width="120">Bukti Dukung</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-MatrixAbsensi">
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             <!-- Nilai UH -->
@@ -1213,8 +1221,9 @@
                                     <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i
                                             class="fa-solid fa-bolt"></i> Ketik angka dan
                                         pindah kolom (Tab). Nilai tersimpan otomatis per pertemuan ini!</div>
-                                    <button type="button" class="btn btn-success" onclick="exportNilaiHarianBukaJadwal()"><i
-                                            class="fa-solid fa-file-excel"></i> Unduh Laporan Nilai Harian</button>
+                                    <button type="button" class="btn btn-success"
+                                        onclick="exportNilaiHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i>
+                                        Unduh Laporan Nilai Harian</button>
                                 </div>
                                 <!-- Hidden inputs for Nilai to rely on specific TA/Smt -->
                                 <input type="hidden" id="buka-nil-ta" value="2025/2026">
@@ -1241,9 +1250,12 @@
                             <!-- Jurnal -->
                             <div class="tab-pane fade" id="buka-jurnal">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i class="fa-solid fa-bolt"></i> Ketik isi jurnal
+                                    <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i
+                                            class="fa-solid fa-bolt"></i> Ketik isi jurnal
                                         dan berpindah kolom. Data akan tersimpan otomatis!</div>
-                                    <button type="button" class="btn btn-success" onclick="exportJurnalHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i> Unduh Jurnal Harian</button>
+                                    <button type="button" class="btn btn-success"
+                                        onclick="exportJurnalHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i>
+                                        Unduh Jurnal Harian</button>
                                 </div>
                                 <form id="form-buka-jurnal" class="row g-3">
                                     <input type="hidden" id="buka-jur-id">
@@ -1430,19 +1442,19 @@
         <!-- ExcelJS -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
-        <script src="nilai.js?v=6"></script>
-        <script src="laporan.js?v=6"></script>
-        <script src="main.js?v=6"></script>
-    <!-- PWA Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('ServiceWorker registered:', reg.scope))
-                    .catch(err => console.log('ServiceWorker registration failed:', err));
-            });
-        }
-    </script>
+        <script src="nilai.js?v=9"></script>
+        <script src="laporan.js?v=9"></script>
+        <script src="main.js?v=9"></script>
+        <!-- PWA Service Worker Registration -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('./sw.js')
+                        .then(reg => console.log('ServiceWorker registered:', reg.scope))
+                        .catch(err => console.log('ServiceWorker registration failed:', err));
+                });
+            }
+        </script>
 </body>
 
 </html>
