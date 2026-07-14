@@ -1,11 +1,22 @@
+// ==========================================
+// REGISTRI URL DATABASE MULTI-TENANT
+// ==========================================
+const TENANT_REGISTRY = {
+  "guru01": "https://script.google.com/macros/s/AKfycbznsQA7CWkzkhkxX63LdvQar-cA3e5sVJ1AHOBJYZ72DjD7e2IpP1JWePip28R6Hwrb8A/exec/exec",
+  "guru02": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec",
+  "demo": "https://script.google.com/macros/s/AKfycbyG7sACxrTCwV_ISkv-g9gqJjQk5OM-5Hwy_N1QGUl_AJu5Gj_0EBvCvdTV2w-6U0KMxA/exec"
+};
 
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyG7sACxrTCwV_ISkv-g9gqJjQk5OM-5Hwy_N1QGUl_AJu5Gj_0EBvCvdTV2w-6U0KMxA/exec"; // GANTI DENGAN URL WEB APP ANDA
+let GAS_API_URL = "";
 
 async function apiCall(action, payload = []) {
+  if (!GAS_API_URL) {
+    throw new Error("Koneksi Database tidak valid. URL tidak terdaftar.");
+  }
   try {
     const response = await fetch(GAS_API_URL, {
       method: 'POST',
-      body: JSON.stringify({ action: action, payload: payload })
+      body: JSON.stringify({ action: action, payload: payload, shardId: appState.activeShardId })
     });
 
     if (!response.ok) {
@@ -29,14 +40,26 @@ let appState = {
   relasi: [],
   siswa: [],
   tahunAjaran: [],
-  activeTA: ''
+  activeTA: '',
+  activeShardId: ''
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const tenantId = urlParams.get('id') || 'default';
+  GAS_API_URL = TENANT_REGISTRY[tenantId];
+
   const today = new Date().toISOString().split('T')[0];
   const absTgl = document.getElementById('filter-abs-tgl');
   if (absTgl) absTgl.value = today;
-  initApp();
+
+  if (GAS_API_URL) {
+    initApp();
+  } else {
+    hideLoader();
+    document.getElementById('landing-container').style.display = 'flex';
+    document.getElementById('landing-nama-sekolah').innerText = "URL Sekolah Tidak Valid";
+  }
 });
 
 function initApp() {
@@ -132,7 +155,7 @@ function initApp() {
 }
 
 // UI Tools
-function handleLogin(e) {
+async function handleLogin(e) {
   e.preventDefault();
   const u = document.getElementById('login-username').value;
   const p = document.getElementById('login-password').value;
@@ -142,9 +165,9 @@ function handleLogin(e) {
   btn.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Loading...';
   btn.disabled = true;
 
-  apiCall('checkLogin', [u, p]).then(isValid => {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
+  try {
+    const isValid = await apiCall('checkLogin', [u, p]);
+
     if (isValid) {
       sessionStorage.setItem('isLoggedIn', 'true');
       document.getElementById('login-container').style.display = 'none';
@@ -158,9 +181,15 @@ function handleLogin(e) {
         });
       }
     } else {
-      Swal.fire('Login Gagal', 'Username atau password salah!', 'error');
+      Swal.fire('Login Gagal', 'Username atau Password salah!', 'error');
     }
-  }).catch(err => { console.error(err); });
+  } catch (err) {
+    console.error(err);
+    Swal.fire('Error', 'Terjadi kesalahan sistem.', 'error');
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
 }
 
 function handleLogout() {
@@ -654,17 +683,18 @@ function prosesImportSiswa() {
         return Swal.fire('Error', 'Data tidak valid. Pastikan kolom NIS dan Nama terisi.', 'error');
       }
 
-      apiCall('withFailureHandler', [err => {
-        hideLoader();
-        Swal.fire('Error', err.message, 'error');
-      }]).then(res => {
+      apiCall('importSiswaBatch', [payload]).then(res => {
         hideLoader();
         let msg = `Berhasil: ${res.success} data.\nGagal (NIS ganda): ${res.failed} data.`;
         if (res.failed > 0) msg += `\nNIS Gagal: ${res.failedNis.join(', ')}`;
         Swal.fire(res.failed > 0 ? 'Info Import' : 'Sukses', msg, res.failed > 0 ? 'warning' : 'success');
         closeAndCleanModal('modalImportSiswa');
         loadSiswa();
-      }).catch(err => { console.error(err); }).importSiswaBatch(payload);
+      }).catch(err => {
+        hideLoader();
+        Swal.fire('Error', err.message, 'error');
+        console.error(err);
+      });
 
     } catch (err) {
       hideLoader();
@@ -805,15 +835,16 @@ function simpanTahunAjaran(e) {
   }
 
   showLoader();
-  apiCall('withFailureHandler', [err => {
-    hideLoader();
-    Swal.fire('Error', err.message, 'error');
-  }]).then(res => {
+  apiCall('createTahunAjaranShard', [nama, id]).then(res => {
     hideLoader();
     closeAndCleanModal('modalTahunAjaran');
     Swal.fire('Tersimpan', 'Tahun Ajaran berhasil disimpan', 'success');
     loadTahunAjaran();
-  }).catch(err => { console.error(err); }).insertData('Tahun_Ajaran', { ID: id, Nama_TA: nama });
+  }).catch(err => {
+    hideLoader();
+    Swal.fire('Error', err.message, 'error');
+    console.error(err);
+  });
 }
 
 function hapusTahunAjaran(namaTA, id) {
@@ -867,6 +898,9 @@ function loadDashboardStats(namaTA) {
 
 function masukTahunAjaran(namaTA) {
   appState.activeTA = namaTA;
+  const targetTA = appState.tahunAjaran.find(ta => ta.Nama_TA === namaTA);
+  appState.activeShardId = targetTA ? (targetTA.Spreadsheet_ID || '') : '';
+
   document.getElementById('nav-operational').style.display = 'block';
   document.getElementById('sidebar-ta-label').innerText = 'TA: ' + namaTA;
 
