@@ -1,4 +1,4 @@
-  // ==========================================
+// ==========================================
   // EKSPOR EXCEL (MENGGUNAKAN EXCELJS)
   // ==========================================
   async function exportToExcel(jenisLaporan) {
@@ -144,76 +144,7 @@
              });
              currentRow++;
          });
-      } 
-      else if (jenisLaporan === 'nilai_harian') {
-         // Header Info
-         worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${filterValues['Tahun_Ajaran']}`;
-         worksheet.getCell('A4').value = 'Semester'; worksheet.getCell('C4').value = `: ${filterValues['Semester']}`;
-         worksheet.getCell('A5').value = 'Kelas'; worksheet.getCell('C5').value = `: ${filterValues['Kelas']}`;
-         worksheet.getCell('A6').value = 'Mapel'; worksheet.getCell('C6').value = `: ${filterValues['Mapel']}`;
-         [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
-
-         let tanggals = new Set();
-         filtered.forEach(row => { if (row['Tanggal']) tanggals.add(row['Tanggal']); });
-         tanggals = Array.from(tanggals).sort();
-
-         let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
-         let cols = [
-           { width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }
-         ];
-         tanggals.forEach(t => {
-            // Ubah format tanggal jika perlu, atau pakai as-is
-            let tglStr = t.split('-').reverse().join('/');
-            headerArr.push(`${tglStr} P`, `${tglStr} K`, `${tglStr} S`);
-            cols.push({ width: 8 }, { width: 8 }, { width: 8 });
-         });
-         headerArr.push('RATA-RATA');
-         cols.push({ width: 12 });
-
-         worksheet.columns = cols;
-         worksheet.mergeCells(1, 1, 1, cols.length); // Dynamic title merge
-         const titleCell = worksheet.getCell('A1');
-         titleCell.value = 'REKAPITULASI NILAI HARIAN SISWA';
-         titleCell.font = titleFont;
-         titleCell.alignment = centerAlign;
-
-         worksheet.getRow(8).values = headerArr;
-         
-         const headerRow = worksheet.getRow(8);
-         headerRow.eachCell((cell) => {
-           cell.font = headerFont;
-           cell.fill = headerFill;
-           cell.alignment = centerAlign;
-           cell.border = borderStyle;
-         });
-         headerRow.height = 30;
-
-         let currentRow = 9;
-         siswaKelas.forEach((s, idx) => {
-             let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
-             let total = 0, count = 0;
-             tanggals.forEach(t => {
-                 const nRow = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Tanggal === t);
-                 ['Pengetahuan', 'Keterampilan', 'Sikap'].forEach(col => {
-                     let val = nRow && nRow[col] ? nRow[col] : '';
-                     rowValues.push(val);
-                     if (val !== '' && !isNaN(val)) { total += parseFloat(val); count++; }
-                 });
-             });
-             let avg = count > 0 ? Math.round(total / count) : '';
-             rowValues.push(avg);
-             
-             const row = worksheet.addRow(rowValues);
-             row.eachCell((cell, colNumber) => {
-               cell.font = normalFont;
-               cell.border = borderStyle;
-               if (colNumber === 3) cell.alignment = leftAlign;
-               else cell.alignment = centerAlign;
-             });
-             currentRow++;
-         });
-      }
-      else if (jenisLaporan === 'nilai_ujian') {
+      } else if (jenisLaporan === 'nilai_ujian') {
          let jenisUjiLabel = filterValues['Jenis_Ujian'] || 'Ujian Sumatif';
          // Header Info
          worksheet.getCell('A3').value = 'Tahun Ajaran'; worksheet.getCell('C3').value = `: ${filterValues['Tahun_Ajaran']}`;
