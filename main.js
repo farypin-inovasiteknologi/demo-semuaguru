@@ -1010,7 +1010,7 @@ async function backupDataJSON() {
   showLoader();
   try {
     const backupObj = await apiCall('backupFullJSON', []);
-    
+
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
     const dlAnchorElem = document.createElement('a');
     dlAnchorElem.setAttribute("href", dataStr);
@@ -1018,13 +1018,42 @@ async function backupDataJSON() {
     document.body.appendChild(dlAnchorElem);
     dlAnchorElem.click();
     document.body.removeChild(dlAnchorElem);
-    
+
     hideLoader();
     Swal.fire('Sukses', 'Backup Full JSON berhasil diunduh.', 'success');
-  } catch(e) {
+  } catch (e) {
     hideLoader();
     Swal.fire('Error', 'Gagal backup: ' + e.message, 'error');
   }
+}
+
+function restoreDB(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  if (confirm("Perhatian! Restore Database akan menimpa seluruh data saat ini, baik Pengaturan, Tahun Ajaran, beserta seluruh data operasional (Siswa, Jadwal, dll). Anda yakin ingin melanjutkan?")) {
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+      try {
+        const jsonData = JSON.parse(event.target.result);
+        showLoader();
+        const res = await apiCall('restoreFullJSON', [jsonData]);
+        hideLoader();
+        if(res && res.success) {
+          Swal.fire('Sukses', 'Database berhasil di-restore! Halaman akan dimuat ulang.', 'success').then(() => {
+            window.location.reload();
+          });
+        } else {
+          Swal.fire('Error', 'Restore gagal: ' + (res ? res.message : 'Unknown error'), 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Error', 'Format file JSON tidak valid atau terjadi kesalahan: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+  e.target.value = '';
 }
 
 function keluarTahunAjaran() {
