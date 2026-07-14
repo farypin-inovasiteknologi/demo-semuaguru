@@ -117,7 +117,7 @@
     <!-- App Container -->
     <div id="app-container" style="display: none;">
         <!-- Mobile Header -->
-        <div class="mobile-header d-flex justify-content-between align-items-center px-3 py-2 bg-white shadow-sm w-100 position-fixed top-0 start-0 z-3"
+        <div class="mobile-header d-flex d-md-none justify-content-between align-items-center px-3 py-2 bg-white shadow-sm w-100 position-fixed top-0 start-0 z-3"
             style="box-sizing: border-box;">
             <div class="d-flex align-items-center gap-2">
                 <img id="mobile-logo-app"
@@ -137,7 +137,7 @@
 
         <div class="sidebar">
             <div class="sidebar-header">
-                <i class="fa-solid fa-graduation-cap fa-2x mb-2"></i>
+                <img id="sidebar-logo-app" src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjQI0KsViudKH7MR610WTF8yzUlK251Nnmpzz-Oc82CnTt7TVETtxdMEI7wRJixdr88M-p39YeRZJWapqsGFWi4MDsXBNxbuqS6zOTPI7lbZIPWjZndjYtA_HikmVosZS4dyLFH6DvEwAu0equgC6ucGc0oEMoJcI30iA6Dz3LItgcK3jtQnNqgfbtsxFsy/s150/logo%20Semua%20Guru%20Hybrid%20ok.png" alt="Logo Aplikasi" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; margin-bottom: 8px;">
                 <h5 class="mb-0 fw-bold">SEMUA GURU</h5>
                 <small id="mode-badge" class="badge bg-light text-primary mt-2">Mode: -</small>
             </div>
@@ -771,7 +771,7 @@
         </div> <!-- End Main Content -->
 
         <!-- Bottom Navigation Global (State 1) -->
-        <div class="bottom-nav" id="bottom-nav-global">
+        <div class="bottom-nav d-md-none" id="bottom-nav-global">
             <a href="#" class="bottom-nav-item" onclick="nav('pengaturan')" id="bnav-pengaturan">
                 <i class="fa-solid fa-cog"></i>
                 <span>Pengaturan</span>
@@ -787,7 +787,7 @@
         </div>
 
         <!-- Bottom Navigation Operational TA (State 2) -->
-        <div class="bottom-nav" id="bottom-nav-operational" style="display: none;">
+        <div class="bottom-nav d-md-none" id="bottom-nav-operational" style="display: none;">
             <a href="#" class="bottom-nav-item" onclick="nav('kelolamapel')" id="bnav-kelolamapel">
                 <i class="fa-solid fa-layer-group"></i>
                 <span>Kelas</span>
@@ -1340,6 +1340,61 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-success w-100" onclick="prosesImportSiswa()"><i
                                 class="fa-solid fa-upload"></i> Proses Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Privacy Policy -->
+        <div class="modal fade" id="modalPrivacyPolicy" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title"><i class="fa-solid fa-shield-halved me-2"></i>Kebijakan Privasi (Privacy Policy)</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start" style="font-size: 0.95rem; line-height: 1.6;">
+                        <p><strong>Terakhir Diperbarui:</strong> 14 Juli 2026</p>
+                        <p>Selamat datang di <strong>SEMUA GURU</strong> (Sistem Elektronik Manajemen Urusan Administrasi Guru). Kami sangat menghargai privasi Anda dan berkomitmen untuk melindungi data pribadi dan institusi Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, menyimpan, dan melindungi informasi Anda saat menggunakan aplikasi ini.</p>
+                        
+                        <h6 class="fw-bold mt-4 text-primary">1. Pengumpulan Informasi</h6>
+                        <p>Aplikasi ini mengumpulkan data yang secara sadar dan sukarela Anda masukkan ke dalam sistem, termasuk namun tidak terbatas pada:</p>
+                        <ul>
+                            <li><strong>Informasi Profil Guru:</strong> Nama, NIP, NUPTK, data demografi, jabatan, kontak, serta kredensial otentikasi.</li>
+                            <li><strong>Data Siswa & Akademik:</strong> Biodata siswa, catatan kehadiran, hasil penilaian kognitif dan psikomotorik, serta jurnal mengajar guru.</li>
+                            <li><strong>Arsip Dokumen:</strong> File bukti kehadiran dan perangkat administrasi pembelajaran (RPP, Modul Ajar, LKPD) yang diunggah ke sistem.</li>
+                        </ul>
+
+                        <h6 class="fw-bold mt-4 text-primary">2. Penggunaan Data</h6>
+                        <p>Data yang dikumpulkan secara ketat digunakan semata-mata untuk keperluan manajerial dan administratif pendidikan, yaitu:</p>
+                        <ul>
+                            <li>Memfasilitasi pencatatan absensi, penilaian, dan rekam jejak akademik siswa secara otomatis dan terstruktur.</li>
+                            <li>Menghasilkan format laporan rekapitulasi standar instansi (.xlsx) untuk diserahkan kepada pemangku kepentingan.</li>
+                            <li>Menyediakan sarana repositori digital bagi dokumen administrasi guru secara aman dan tersentralisasi.</li>
+                        </ul>
+
+                        <h6 class="fw-bold mt-4 text-primary">3. Keamanan Data & Enkripsi</h6>
+                        <p>Infrastruktur aplikasi ini dibangun dengan lapisan keamanan mutakhir:</p>
+                        <ul>
+                            <li>Data Anda disimpan menggunakan infrastruktur <em>Cloud Database</em> tersertifikasi yang menjamin ketersediaan (<em>high availability</em>) dan pencadangan (<em>backup</em>) secara berkala.</li>
+                            <li>Komunikasi data antara klien dan peladen diamankan melalui protokol enkripsi TLS/SSL standar industri guna mencegah penyadapan.</li>
+                            <li>Keamanan kredensial dan hak akses dikelola sepenuhnya oleh pengguna melalui sistem otentikasi mandiri.</li>
+                        </ul>
+
+                        <h6 class="fw-bold mt-4 text-primary">4. Pembagian Data (Data Sharing)</h6>
+                        <p>Kami <strong>TIDAK PERNAH</strong> menjual, menyewakan, atau menukar data profil guru maupun data sensitif siswa Anda kepada pihak ketiga manapun untuk tujuan komersial, pemasaran, ataupun analisis eksternal.</p>
+
+                        <h6 class="fw-bold mt-4 text-primary">5. Integrasi Sistem Luring (Offline/Desktop)</h6>
+                        <p>Bagi pengguna versi desktop luring (<em>Electron.js Native</em>), data berpotensi diproses dan disimpan secara lokal di ruang penyimpanan fisik perangkat Anda (<em>Local File System</em>). Anda sepenuhnya memegang kendali atas keamanan fisik dan akses masuk terhadap perangkat keras tersebut.</p>
+
+                        <h6 class="fw-bold mt-4 text-primary">6. Kontak Pengembang</h6>
+                        <p>Jika Anda memiliki pertanyaan mendalam atau keluhan terkait kebijakan privasi dan keamanan sistem kami, Anda dapat menghubungi tim pengembang melalui jalur komunikasi yang disertakan dalam paket lisensi perangkat lunak ini.</p>
+                        
+                        <hr class="my-4">
+                        <p class="text-muted small mb-0">Dengan menggunakan aplikasi SEMUA GURU, Anda dianggap telah membaca, memahami, dan menyetujui seluruh klausul Kebijakan Privasi di atas.</p>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Saya Mengerti</button>
                     </div>
                 </div>
             </div>
