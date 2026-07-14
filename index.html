@@ -1251,8 +1251,7 @@
                             <div class="tab-pane fade" id="buka-jurnal">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i
-                                            class="fa-solid fa-bolt"></i> Ketik isi jurnal
-                                        dan berpindah kolom. Data akan tersimpan otomatis!</div>
+                                            class="fa-solid fa-bolt"></i> Ketik isi jurnal dan klik Simpan.</div>
                                     <button type="button" class="btn btn-success"
                                         onclick="exportJurnalHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i>
                                         Unduh Jurnal Harian</button>
@@ -1262,25 +1261,25 @@
                                     <div class="col-12">
                                         <label class="form-label fw-bold">Materi yang Diajarkan</label>
                                         <textarea id="buka-jur-materi" class="form-control" rows="2"
-                                            placeholder="Tuliskan materi..."
-                                            onblur="simpanJurnalDariModal()"></textarea>
+                                            placeholder="Tuliskan materi..."></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Permasalahan</label>
                                         <textarea id="buka-jur-permasalahan" class="form-control" rows="2"
-                                            placeholder="Permasalahan di kelas..."
-                                            onblur="simpanJurnalDariModal()"></textarea>
+                                            placeholder="Permasalahan di kelas..."></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Solusi</label>
                                         <textarea id="buka-jur-solusi" class="form-control" rows="2"
-                                            placeholder="Solusi yang diterapkan..."
-                                            onblur="simpanJurnalDariModal()"></textarea>
+                                            placeholder="Solusi yang diterapkan..."></textarea>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label fw-bold">Keterangan Tambahan</label>
                                         <input type="text" id="buka-jur-keterangan" class="form-control"
-                                            placeholder="Opsional..." onblur="simpanJurnalDariModal()">
+                                            placeholder="Opsional...">
+                                    </div>
+                                    <div class="col-12 text-end mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="simpanJurnalDariModal()"><i class="fa-solid fa-save"></i> Simpan Jurnal</button>
                                     </div>
                                 </form>
                             </div>
@@ -1442,9 +1441,9 @@
         <!-- ExcelJS -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
-        <script src="nilai.js?v=9"></script>
-        <script src="laporan.js?v=9"></script>
-        <script src="main.js?v=9"></script>
+        <script src="nilai.js?v=10"></script>
+        <script src="laporan.js?v=10"></script>
+        <script src="main.js?v=10"></script>
         <!-- PWA Service Worker Registration -->
         <script>
             if ('serviceWorker' in navigator) {
