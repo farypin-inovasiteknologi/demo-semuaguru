@@ -424,20 +424,45 @@
                     </div>
                 </div>
 
-                <div class="alert alert-success py-2"><i class="fa-solid fa-bolt"></i> Ketik angka dan pindah kolom.
-                    Nilai tersimpan otomatis!</div>
+                <div class="row mb-3 bg-light p-2 rounded align-items-center border border-primary mx-0">
+                    <div class="col-md-3 fw-bold text-primary"><i class="fa-solid fa-calculator"></i> Konversi Otomatis:</div>
+                    <div class="col-md-3">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white">Min Target</span>
+                            <input type="number" id="konv-min" class="form-control" placeholder="Misal: 70" value="70">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white">Max Target</span>
+                            <input type="number" id="konv-max" class="form-control" placeholder="Misal: 95" value="95">
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-end">
+                        <button class="btn btn-sm btn-primary w-100 fw-bold" onclick="konversiNilaiOtomatis()"><i class="fa-solid fa-wand-magic-sparkles"></i> Jalankan Konversi</button>
+                    </div>
+                </div>
+
+                <div class="alert alert-success py-2 small"><i class="fa-solid fa-bolt"></i> Ketik angka dan pindah kolom.
+                    Nilai asli tersimpan otomatis! Gunakan fitur konversi di atas untuk menghasilkan nilai rapot.</div>
 
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle text-center">
-                        <thead class="table-dark">
+                    <table class="table table-bordered align-middle text-center" style="min-width: 900px;">
+                        <thead class="table-dark align-middle">
                             <tr>
-                                <th width="100">NIS</th>
-                                <th class="text-start">Nama Siswa</th>
-                                <th width="80">L/P</th>
-                                <th width="120">Pengetahuan</th>
-                                <th width="120">Keterampilan</th>
-                                <th width="140">Sikap</th>
-                                <th width="200">Catatan</th>
+                                <th rowspan="2" width="90">NIS</th>
+                                <th rowspan="2" class="text-start">Nama Siswa</th>
+                                <th rowspan="2" width="60">L/P</th>
+                                <th colspan="2">Pengetahuan</th>
+                                <th colspan="2">Keterampilan</th>
+                                <th rowspan="2" width="130">Sikap</th>
+                                <th rowspan="2" width="180">Catatan</th>
+                            </tr>
+                            <tr>
+                                <th width="75">Asli</th>
+                                <th width="75" class="bg-secondary">Konv</th>
+                                <th width="75">Asli</th>
+                                <th width="75" class="bg-secondary">Konv</th>
                             </tr>
                         </thead>
                         <tbody id="tbody-MatrixNilaiUjian">
