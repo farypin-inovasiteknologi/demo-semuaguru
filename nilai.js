@@ -175,11 +175,12 @@ function simpanJurnalDariModal() {
     Materi: document.getElementById('buka-jur-materi').value,
     Permasalahan: document.getElementById('buka-jur-permasalahan').value,
     Solusi: document.getElementById('buka-jur-solusi').value,
-    Keterangan: document.getElementById('buka-jur-keterangan').value
+    Keterangan: document.getElementById('buka-jur-keterangan').value,
+    Tahun_Ajaran: appState.activeTA
   };
 
   apiCall('saveData', ['Jurnal', payload]).then(() => {
-    showSaveToast();
+    Swal.fire({ title: 'Jurnal Tersimpan!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
   }).catch(err => { console.error(err); });
 }
 
