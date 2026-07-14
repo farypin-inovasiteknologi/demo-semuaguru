@@ -403,30 +403,30 @@ function previewBackground(input) {
 function lupaPassword() {
   Swal.fire({
     title: 'Lupa Password?',
-    text: "Masukkan alamat email Anda untuk menerima password saat ini.",
+    text: "Masukkan alamat email admin yang terdaftar pada sistem.",
     input: 'email',
-    inputPlaceholder: 'Email admin',
+    inputPlaceholder: 'email@gmail.com',
     showCancelButton: true,
-    confirmButtonText: 'Kirim',
+    confirmButtonText: 'Kirim Password',
     cancelButtonText: 'Batal',
     showLoaderOnConfirm: true,
-    preConfirm: (email) => {
-      return new Promise((resolve) => {
-        apiCall('withFailureHandler', [err => {
-          resolve({ success: false, message: "Terjadi kesalahan koneksi." });
-        }]).then(res => {
-          resolve(res);
-        }).catch(err => { console.error(err); }).sendPasswordToEmail(email);
-      });
+    preConfirm: async (email) => {
+      try {
+        const res = await apiCall('sendPasswordToEmail', [email]);
+        if (!res || !res.success) {
+          Swal.showValidationMessage(res ? res.message : 'Respons tidak valid dari server.');
+          return false;
+        }
+        return res;
+      } catch (error) {
+        Swal.showValidationMessage(`Koneksi Gagal / Fungsi belum tersedia: ${error.message}`);
+        return false;
+      }
     },
     allowOutsideClick: () => !Swal.isLoading()
   }).then((result) => {
-    if (result.isConfirmed) {
-      if (result.value.success) {
-        Swal.fire('Berhasil!', result.value.message, 'success');
-      } else {
-        Swal.fire('Gagal!', result.value.message, 'error');
-      }
+    if (result.isConfirmed && result.value) {
+      Swal.fire('Berhasil!', result.value.message, 'success');
     }
   });
 }
@@ -441,14 +441,15 @@ function simpanTandaTangan() {
   apiCall('saveMultipleSettings', [{
     'Kepsek_Nama': nks,
     'Kepsek_NIP': nipks,
+    'Guru_Nama': ng,
+    'Guru_NIP': nipg
   }]).then(() => {
     hideLoader();
     Swal.fire('Tersimpan', 'Pengaturan Tanda Tangan diperbarui', 'success');
-  }).catch(err => { console.error(err); }).saveMultipleSettings({
-    'Kepsek_Nama': nks,
-    'Kepsek_NIP': nipks,
-    'Guru_Nama': ng,
-    'Guru_NIP': nipg
+  }).catch(err => { 
+    hideLoader();
+    console.error(err); 
+    Swal.fire('Gagal', 'Terjadi kesalahan: ' + err.message, 'error');
   });
 }
 
