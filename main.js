@@ -2,7 +2,7 @@
 // REGISTRI URL DATABASE MULTI-TENANT
 // ==========================================
 const TENANT_REGISTRY = {
-  "guru01": "https://script.google.com/macros/s/AKfycbxe60-M4nU-1fJJSExgGE2UCYmLnjNYXjQ2DoqBHqSZwK8Ow1rvADdI3IbyjBrZZ9xeIA/exec",
+  "guru01": "https://script.google.com/macros/s/AKfycbwgOu_mceKB4uorKjzkQ_FMWlw7Ogi6bLn4F90jqM_3e9q3HBZLCEOet2YjQMhr36IROw/exec",
   "guru02": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec",
   "demo": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec"
 };
