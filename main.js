@@ -998,11 +998,33 @@ function masukTahunAjaran(namaTA) {
   if (typeof loadAbsensi === 'function') loadAbsensi();
   if (typeof loadNilai === 'function') loadNilai();
   if (typeof loadNilaiUjian === 'function') loadNilaiUjian();
+  loadJadwal(); // Fix: pastikan jadwal dimuat sesuai TA yang dipilih
 
   loadDashboardStats(namaTA);
 
   // Pindah ke menu Dashboard TA secara otomatis
   nav('dashboard-ta');
+}
+
+async function backupDataJSON() {
+  showLoader();
+  try {
+    const backupObj = await apiCall('backupFullJSON', []);
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `Backup_FULL_SemuaGuru_${new Date().getTime()}.json`);
+    document.body.appendChild(dlAnchorElem);
+    dlAnchorElem.click();
+    document.body.removeChild(dlAnchorElem);
+    
+    hideLoader();
+    Swal.fire('Sukses', 'Backup Full JSON berhasil diunduh.', 'success');
+  } catch(e) {
+    hideLoader();
+    Swal.fire('Error', 'Gagal backup: ' + e.message, 'error');
+  }
 }
 
 function keluarTahunAjaran() {
