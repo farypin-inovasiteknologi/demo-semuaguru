@@ -487,8 +487,6 @@
                     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab"
                             data-bs-target="#tab-lap-absensi">Laporan Absensi</button></li>
                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
-                            data-bs-target="#tab-lap-nilai">Laporan Nilai UH</button></li>
-                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
                             data-bs-target="#tab-lap-ujian">Laporan Nilai Ujian (Sumatif)</button></li>
                 </ul>
                 <div class="tab-content border-top-0">
@@ -518,39 +516,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="tab-lap-nilai">
-                        <div class="row g-2 mb-4 bg-light p-3 rounded border">
-                            <div class="col-md-2">
-                                <label class="form-label small fw-bold">Kelas</label>
-                                <select id="lap-nil-kelas" class="form-select dropdown-kelas"
-                                    onchange="updateDependentDropdown('kelas', 'lap-nil-kelas', 'lap-nil-mapel')">
-                                    <option value="">Pilih...</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small fw-bold">Mapel</label>
-                                <select id="lap-nil-mapel" class="form-select dropdown-mapel"
-                                    onchange="updateDependentDropdown('mapel', 'lap-nil-mapel', 'lap-nil-kelas')">
-                                    <option value="">Pilih...</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small fw-bold">Tahun Ajaran</label>
-                                <input type="text" id="lap-nil-ta" class="form-control" value="2025/2026">
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small fw-bold">Semester</label>
-                                <select id="lap-nil-smt" class="form-select">
-                                    <option value="1">Ganjil</option>
-                                    <option value="2">Genap</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 d-flex align-items-end gap-2">
-                                <button class="btn btn-success w-100" onclick="exportToExcel('nilai_harian')"><i
-                                        class="fa-solid fa-file-excel"></i> Excel</button>
-                            </div>
-                        </div>
-                    </div>
+
                     <div class="tab-pane fade" id="tab-lap-ujian">
                         <div class="row g-2 mb-4 bg-light p-3 rounded border">
                             <div class="col-md-3">
@@ -1123,7 +1089,7 @@
     <!-- Modal Upload File (Hidden Input) -->
     <input type="file" id="arsip-file-input" style="display: none;"
         accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-    <div class="modal fade" id="modalUploadArsip" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal fade" id="modalUploadArsip" tabindex="-1" data-bs-backdrop="static" style="z-index: 1060;">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body text-center p-4">
@@ -1227,8 +1193,11 @@
 
                             <!-- Nilai UH -->
                             <div class="tab-pane fade" id="buka-nilai">
-                                <div class="alert alert-success py-2"><i class="fa-solid fa-bolt"></i> Ketik angka dan
-                                    pindah kolom (Tab). Nilai tersimpan otomatis per pertemuan ini!</div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i class="fa-solid fa-bolt"></i> Ketik angka dan
+                                        pindah kolom (Tab). Nilai tersimpan otomatis per pertemuan ini!</div>
+                                    <button class="btn btn-success" onclick="exportNilaiHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i> Unduh Laporan Nilai Harian</button>
+                                </div>
                                 <!-- Hidden inputs for Nilai to rely on specific TA/Smt -->
                                 <input type="hidden" id="buka-nil-ta" value="2025/2026">
                                 <input type="hidden" id="buka-nil-smt" value="1">
