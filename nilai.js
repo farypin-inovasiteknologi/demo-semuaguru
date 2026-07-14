@@ -179,7 +179,7 @@ function simpanJurnalDariModal() {
     Tahun_Ajaran: appState.activeTA
   };
 
-  apiCall('saveData', ['Jurnal', payload]).then(() => {
+  apiCall('insertData', ['Jurnal', payload]).then(() => {
     Swal.fire({ title: 'Jurnal Tersimpan!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
   }).catch(err => { console.error(err); });
 }
