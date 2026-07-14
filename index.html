@@ -668,8 +668,8 @@
                                     spreadsheet Anda.
                                 </div>
                                 <button class="btn btn-success me-2" onclick="backupDataJSON()"><i class="fa-solid fa-cloud-arrow-down"></i> Backup Data (JSON)</button>
-                                <button class="btn btn-outline-danger"><i class="fa-solid fa-trash-can"></i> Reset Semua
-                                    Data!</button>
+                                <button class="btn btn-outline-primary" onclick="document.getElementById('input-restore-db').click()"><i class="fa-solid fa-cloud-arrow-up"></i> Restore DB</button>
+                                <input type="file" id="input-restore-db" style="display:none" accept=".json" onchange="restoreDB(event)">
                             </div>
 
                             <!-- Tanda Tangan -->
