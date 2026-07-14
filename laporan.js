@@ -375,10 +375,9 @@ async function exportNilaiHarianBukaJadwal() {
     hideLoader();
     
     const filtered = data.filter(row => 
-      row.Kelas === kelas && 
-      row.Mapel === mapel && 
-      row.Semester == semester && 
-      row.Tahun_Ajaran === ta
+      String(row.Kelas).trim() === String(kelas).trim() && 
+      String(row.Mapel).trim() === String(mapel).trim() && 
+      String(row.Tahun_Ajaran).trim() === String(ta).trim()
     );
 
     const siswaKelas = appState.siswa.filter(s => String(s.Kelas).trim() === String(kelas).trim());
@@ -406,7 +405,7 @@ async function exportNilaiHarianBukaJadwal() {
     [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
 
     let tanggals = new Set();
-    filtered.forEach(row => { if (row['Tanggal']) tanggals.add(row['Tanggal']); });
+    filtered.forEach(row => { if (row['Tanggal']) tanggals.add(String(row['Tanggal']).trim()); });
     tanggals = Array.from(tanggals).sort();
 
     let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
@@ -417,8 +416,6 @@ async function exportNilaiHarianBukaJadwal() {
        headerArr.push(`${tglStr} P`, `${tglStr} K`, `${tglStr} S`, `${tglStr} CTTN`);
        cols.push({ width: 8 }, { width: 8 }, { width: 8 }, { width: 15 });
     });
-    headerArr.push('RATA-RATA P', 'RATA-RATA K');
-    cols.push({ width: 12 }, { width: 12 });
 
     worksheet.columns = cols;
     worksheet.mergeCells(1, 1, 1, cols.length);
@@ -440,21 +437,14 @@ async function exportNilaiHarianBukaJadwal() {
     let currentRow = 9;
     siswaKelas.forEach((s, idx) => {
         let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
-        let totalP = 0; let countP = 0;
-        let totalK = 0; let countK = 0;
         tanggals.forEach(t => {
-            const nil = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Tanggal === t);
+            const nil = filtered.find(r => String(r.NIS).trim() === String(s.NIS).trim() && String(r.Tanggal).trim() === t);
             let p = nil ? (parseFloat(nil.Pengetahuan) || 0) : 0;
             let k = nil ? (parseFloat(nil.Keterampilan) || 0) : 0;
             let skp = nil ? (nil.Sikap || '') : '';
             let cttn = nil ? (nil.Catatan || '') : '';
             rowValues.push(p || '', k || '', skp, cttn);
-            if (p > 0) { totalP += p; countP++; }
-            if (k > 0) { totalK += k; countK++; }
         });
-        let rataP = countP > 0 ? (totalP/countP).toFixed(2) : '';
-        let rataK = countK > 0 ? (totalK/countK).toFixed(2) : '';
-        rowValues.push(rataP, rataK);
 
         const row = worksheet.addRow(rowValues);
         row.eachCell((cell, colNumber) => {
@@ -500,10 +490,9 @@ async function exportAbsensiHarianBukaJadwal() {
     hideLoader();
     
     const filtered = data.filter(row => 
-      row.Kelas === kelas && 
-      row.Mapel === mapel && 
-      row.Semester == semester && 
-      row.Tahun_Ajaran === ta
+      String(row.Kelas).trim() === String(kelas).trim() && 
+      String(row.Mapel).trim() === String(mapel).trim() && 
+      String(row.Tahun_Ajaran).trim() === String(ta).trim()
     );
 
     const siswaKelas = appState.siswa.filter(s => String(s.Kelas).trim() === String(kelas).trim());
@@ -531,7 +520,7 @@ async function exportAbsensiHarianBukaJadwal() {
     [3,4,5,6].forEach(r => worksheet.getCell(`A${r}`).font = subTitleFont);
 
     let tanggals = new Set();
-    filtered.forEach(row => { if (row['Tanggal']) tanggals.add(row['Tanggal']); });
+    filtered.forEach(row => { if (row['Tanggal']) tanggals.add(String(row['Tanggal']).trim()); });
     tanggals = Array.from(tanggals).sort();
 
     let headerArr = ['NO', 'NIS', 'NAMA', 'JK'];
@@ -539,8 +528,8 @@ async function exportAbsensiHarianBukaJadwal() {
     
     tanggals.forEach(t => {
        let tglStr = t.split('-').reverse().join('/');
-       headerArr.push(`${tglStr} H/I/S/A`);
-       cols.push({ width: 15 });
+       headerArr.push(`${tglStr} Status`, `${tglStr} Keterangan`, `${tglStr} Bukti`);
+       cols.push({ width: 10 }, { width: 15 }, { width: 25 });
     });
 
     worksheet.columns = cols;
@@ -565,13 +554,13 @@ async function exportAbsensiHarianBukaJadwal() {
     siswaKelas.forEach((s, idx) => {
         let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
         tanggals.forEach(t => {
-            const abs = filtered.find(r => String(r.NIS) === String(s.NIS) && r.Tanggal === t);
-            let val = '';
-            if (abs && abs.Status) {
-                let stat = abs.Status.trim().toUpperCase();
-                val = ketMap[stat] ? `${stat} - ${ketMap[stat]}` : stat;
+            const abs = filtered.find(r => String(r.NIS).trim() === String(s.NIS).trim() && String(r.Tanggal).trim() === t);
+            if (abs) {
+                let stat = (abs.Status || '').trim().toUpperCase();
+                rowValues.push(stat, ketMap[stat] || '', abs.Bukti_Dukung || '');
+            } else {
+                rowValues.push('', '', '');
             }
-            rowValues.push(val);
         });
 
         const row = worksheet.addRow(rowValues);
@@ -617,9 +606,9 @@ async function exportJurnalHarianBukaJadwal() {
     
     // Filter out Jurnal
     const filtered = data.filter(row => 
-      row.Kelas === kelas && 
-      row.Mapel === mapel && 
-      row.Tahun_Ajaran === ta
+      String(row.Kelas).trim() === String(kelas).trim() && 
+      String(row.Mapel).trim() === String(mapel).trim() && 
+      String(row.Tahun_Ajaran).trim() === String(ta).trim()
     );
 
     if (filtered.length === 0) {
