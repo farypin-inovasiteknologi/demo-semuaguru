@@ -1486,7 +1486,19 @@ function masukTahunAjaran(namaTA) {
 }
 
 async function backupDataJSON() {
-  showLoader();
+  if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
+    Swal.fire({
+      title: 'Memproses Backup',
+      html: 'Proses ini memakan waktu agak lama karena mengunduh data dari Google Cloud.<br><br><b>Mohon bersabar dan jangan tutup halaman ini.</b>',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+  } else {
+    showLoader();
+  }
+
   try {
     let backupObj = {};
     if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
