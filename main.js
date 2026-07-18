@@ -42,10 +42,10 @@ window.getBase64 = function (file) {
 }
 
 async function apiCall(action, payload = []) {
-  const writeActions = ['saveMultipleSettings', 'insertData', 'deleteData', 'importSiswaBatch', 'autoSaveAbsensi', 'autoSaveJadwalMateri', 'autoSaveNilai', 'autoSaveNilaiUjian', 'batchSaveNilaiUjian', 'resetKonversiNilaiUjian', 'updateBuktiDukung', 'insertBukuKasus', 'deleteBukuKasus'];
+  const writeActions = ['insertData', 'deleteData', 'importSiswaBatch', 'autoSaveAbsensi', 'autoSaveJadwalMateri', 'autoSaveNilai', 'autoSaveNilaiUjian', 'batchSaveNilaiUjian', 'resetKonversiNilaiUjian', 'updateBuktiDukung', 'insertBukuKasus', 'deleteBukuKasus', 'hapusDataTahunAjaran'];
 
   if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online' && writeActions.includes(action)) {
-    Swal.fire('Akses Dibatasi', 'Tidak bisa tambah/edit versi online, harap input data melalui versi offline di desktop Anda.', 'info');
+    Swal.fire('Akses Dibatasi', 'Tidak bisa ubah/hapus data di versi online, harap lakukan melalui versi offline di laptop Anda.', 'info');
     throw new Error('Akses Dibatasi');
   }
 
@@ -431,6 +431,10 @@ function closeAndCleanModal(modalId) {
 }
 
 function setMode(mode) {
+  if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
+    Swal.fire('Akses Dibatasi', 'Mode mengajar tidak bisa diubah di versi Online. Harap lakukan melalui versi offline di laptop Anda.', 'info');
+    return;
+  }
   showLoader();
   apiCall('setModeMengajar', [mode]).then(res => {
     appState.modeAktif = res;
@@ -1086,10 +1090,12 @@ function changePageSiswa(delta) {
 // SINKRONISASI OFFLINE KE ONLINE
 // ==========================================
 async function mulaiSinkronisasi() {
+  const savedUrl = localStorage.getItem('sync_url') || '';
   Swal.fire({
     title: 'Sinkronisasi ke Cloud',
     text: "Masukkan URL Exec dari Google Apps Script Anda:",
     input: 'url',
+    inputValue: savedUrl,
     inputPlaceholder: 'https://script.google.com/macros/s/.../exec',
     showCancelButton: true,
     confirmButtonText: 'Mulai Proses Sinkronisasi',
@@ -1100,6 +1106,7 @@ async function mulaiSinkronisasi() {
         Swal.showValidationMessage('URL tidak valid');
         return false;
       }
+      localStorage.setItem('sync_url', url);
       try {
         const payload = {
           Pengaturan: await db.Pengaturan.toArray(),
