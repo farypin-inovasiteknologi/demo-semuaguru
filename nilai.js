@@ -161,7 +161,7 @@ function loadFormJurnal() {
   }).catch(err => { console.error(err); });
 }
 
-function simpanJurnalDariModal() {
+function simpanJurnalDariModal(silent = false) {
   const id = document.getElementById('buka-jur-id').value;
   const tgl = document.getElementById('buka-info-tanggal').innerText;
   const kls = document.getElementById('buka-info-kelas').innerText;
@@ -180,7 +180,7 @@ function simpanJurnalDariModal() {
   };
 
   apiCall('insertData', ['Jurnal', payload]).then(() => {
-    Swal.fire({ title: 'Jurnal Tersimpan!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+    if (!silent) Swal.fire({ title: 'Jurnal Tersimpan!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
   }).catch(err => { console.error(err); });
 }
 
@@ -252,7 +252,7 @@ function loadNilaiMatrix() {
 
     tb.innerHTML = `<tr>
         <td colspan="3" class="fw-bold bg-light text-end">Materi yang diajarkan:</td>
-        <td colspan="4"><input type="text" class="form-control form-control-sm" placeholder="Materi Harian (Opsional)" value="${materiVal}" onblur="triggerAutoSaveJadwalMateri(this.value)"></td>
+        <td colspan="4"><input type="text" id="buka-uh-materi" class="form-control form-control-sm" placeholder="Otomatis dari Rencana Ajar" value="${materiVal}" readonly></td>
       </tr>`;
     data.forEach((s, index) => {
       tb.innerHTML += `<tr>
@@ -329,6 +329,149 @@ function updateJenisUjianOptions() {
   loadNilaiUjianMatrix();
 }
 
+let currentArsipUjianId = null;
+
+function loadArsipUjian(ta, smt, kls, mpl, jenis) {
+  document.getElementById('arsip-ujian-container').style.display = 'block';
+  apiCall('readData', ['Arsip_Ujian']).then(d => {
+    let arsip = d.find(x => x.Tahun_Ajaran === ta && x.Semester === smt && x.Kelas === kls && x.Mapel === mpl && x.Jenis_Ujian === jenis);
+    if (!arsip) {
+      arsip = {
+        ID: 'ARSIP-' + new Date().getTime(),
+        Tahun_Ajaran: ta,
+        Semester: smt,
+        Kelas: kls,
+        Mapel: mpl,
+        Jenis_Ujian: jenis,
+        File_Kisi: '',
+        File_Soal: '',
+        File_Kunci: ''
+      };
+      // Pre-save it locally
+      apiCall('insertData', ['Arsip_Ujian', arsip]).catch(e => console.error(e));
+    }
+    currentArsipUjianId = arsip.ID;
+
+    const renderAction = (fld, val) => {
+      const btnId = fld === 'File_Kisi' ? 'btn-kisi-actions' : (fld === 'File_Soal' ? 'btn-soal-actions' : 'btn-kunci-actions');
+      const container = document.getElementById(btnId);
+      if (val) {
+        container.style.display = 'block';
+        container.previousElementSibling.style.display = 'none'; // hide upload btn
+        container.previousElementSibling.previousElementSibling.style.display = 'none'; // hide input file
+      } else {
+        container.style.display = 'none';
+        container.previousElementSibling.style.display = 'block';
+        container.previousElementSibling.previousElementSibling.style.display = 'block';
+      }
+    };
+    renderAction('File_Kisi', arsip.File_Kisi);
+    renderAction('File_Soal', arsip.File_Soal);
+    renderAction('File_Kunci', arsip.File_Kunci);
+  }).catch(e => console.error(e));
+}
+
+function uploadFileUjian(fld) {
+  if (!currentArsipUjianId) return;
+  const inputId = fld === 'File_Kisi' ? 'arsip-kisi-file' : (fld === 'File_Soal' ? 'arsip-soal-file' : 'arsip-kunci-file');
+  const fileInput = document.getElementById(inputId);
+  if (!fileInput.files.length) {
+    Swal.fire('Peringatan', 'Pilih file terlebih dahulu!', 'warning');
+    return;
+  }
+  
+  const file = fileInput.files[0];
+  if (file.size > 1 * 1024 * 1024) {
+    Swal.fire('Peringatan', 'Ukuran file terlalu besar (Maks 1MB).', 'warning');
+    return;
+  }
+  
+  showLoader();
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    let dataUrl = e.target.result;
+    
+    // Simpan ke offline jika APP_ENV === offline (menggunakan File System Electron jika ada, atau sekadar dataUrl Base64)
+    if (typeof APP_ENV !== 'undefined' && APP_ENV === 'offline' && window.electronAPI) {
+        try {
+            const ext = file.name.split('.').pop();
+            const filePath = await window.electronAPI.uploadFile({
+              name: `Ujian_${fld}_${new Date().getTime()}.${ext}`,
+              data: dataUrl
+            });
+            if (filePath) dataUrl = filePath;
+        } catch(err) {
+            console.error('Electron save failed, fallback to base64', err);
+        }
+    }
+    
+    apiCall('readData', ['Arsip_Ujian']).then(d => {
+      let arsip = d.find(x => x.ID === currentArsipUjianId);
+      if (arsip) {
+        arsip[fld] = dataUrl;
+        apiCall('insertData', ['Arsip_Ujian', arsip]).then(res => {
+          hideLoader();
+          if(res.success) {
+            Swal.fire('Berhasil', 'File berhasil diupload', 'success');
+            loadNilaiUjianMatrix();
+          }
+        });
+      } else { hideLoader(); }
+    }).catch(err => { hideLoader(); console.error(err); });
+  };
+  reader.readAsDataURL(file);
+}
+
+function lihatFileUjian(fld) {
+  if (!currentArsipUjianId) return;
+  apiCall('readData', ['Arsip_Ujian']).then(d => {
+    let arsip = d.find(x => x.ID === currentArsipUjianId);
+    if (arsip && arsip[fld]) {
+      if (typeof window.electronAPI !== 'undefined' && arsip[fld].startsWith('uploads\\')) {
+          window.electronAPI.openFile(arsip[fld]);
+      } else {
+          // Mode Online (Base64) - Unduh file agar bisa dibuka sesuai ekstensinya
+          const a = document.createElement('a');
+          a.href = arsip[fld];
+          // Menentukan nama ekstensi kasar dari tipe konten
+          let ext = "pdf";
+          if(arsip[fld].indexOf("wordprocessingml") !== -1 || arsip[fld].indexOf("msword") !== -1) ext = "docx";
+          if(arsip[fld].indexOf("spreadsheetml") !== -1 || arsip[fld].indexOf("excel") !== -1) ext = "xlsx";
+          
+          a.download = `Arsip_${fld}_${arsip.Kelas}_${arsip.Mapel}.${ext}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+      }
+    }
+  });
+}
+
+function hapusFileUjian(fld) {
+  Swal.fire({
+    title: 'Hapus File Ujian?',
+    html: '<div class="text-danger mb-2">Peringatan: hati-hati dalam menghapus data. data yang telah dihapus tidak dapat dikembalikan lagi.</div>Apakah Anda yakin ingin menghapus file ini?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Hapus'
+  }).then(r => {
+    if (r.isConfirmed) {
+      apiCall('readData', ['Arsip_Ujian']).then(d => {
+        let arsip = d.find(x => x.ID === currentArsipUjianId);
+        if (arsip && arsip[fld]) {
+          arsip[fld] = '';
+          apiCall('insertData', ['Arsip_Ujian', arsip]).then(res => {
+            if(res.success) {
+              Swal.fire('Berhasil', 'File berhasil dihapus', 'success');
+              loadNilaiUjianMatrix();
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
 function loadNilaiUjianMatrix() {
   const ta = document.getElementById('filter-uji-ta').value;
   const smt = document.getElementById('filter-uji-smt').value;
@@ -336,8 +479,10 @@ function loadNilaiUjianMatrix() {
   const kls = document.getElementById('filter-uji-kelas').value;
   const mpl = document.getElementById('filter-uji-mapel').value;
   const tb = document.getElementById('tbody-MatrixNilaiUjian');
-  if (!kls || !mpl || !jenis) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Lengkapi semua filter.</td></tr>'; return; }
+  if (!kls || !mpl || !jenis) { tb.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Lengkapi semua filter.</td></tr>'; document.getElementById('arsip-ujian-container').style.display = 'none'; return; }
   tb.innerHTML = '<tr><td colspan="6" class="text-center"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>';
+  
+  loadArsipUjian(ta, smt, kls, mpl, jenis);
 
   apiCall('getNilaiUjianMatrix', [ta, smt, kls, mpl, jenis]).then(data => {
     if (data.length === 0) { tb.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Tidak ada siswa.</td></tr>`; return; }
