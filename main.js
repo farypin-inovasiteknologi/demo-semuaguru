@@ -32,7 +32,7 @@ window.getBase64 = function (file) {
 }
 
 async function apiCall(action, payload = []) {
-  const writeActions = ['saveMultipleSettings', 'setModeMengajar', 'insertData', 'deleteData', 'importSiswaBatch', 'autoSaveAbsensi', 'autoSaveJadwalMateri', 'autoSaveNilai', 'autoSaveNilaiUjian', 'batchSaveNilaiUjian', 'resetKonversiNilaiUjian', 'updateBuktiDukung', 'insertBukuKasus', 'deleteBukuKasus'];
+  const writeActions = ['saveMultipleSettings', 'insertData', 'deleteData', 'importSiswaBatch', 'autoSaveAbsensi', 'autoSaveJadwalMateri', 'autoSaveNilai', 'autoSaveNilaiUjian', 'batchSaveNilaiUjian', 'resetKonversiNilaiUjian', 'updateBuktiDukung', 'insertBukuKasus', 'deleteBukuKasus'];
 
   if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online' && writeActions.includes(action)) {
     Swal.fire('Akses Dibatasi', 'Tidak bisa tambah/edit versi online, harap input data melalui versi offline di desktop Anda.', 'info');
@@ -426,6 +426,16 @@ function setMode(mode) {
     appState.modeAktif = res;
     document.getElementById('mode-badge').innerText = `Mode: ${res}`;
     updateModeBadges(res);
+    
+    // Alihkan tampilan ke tab yang sesuai dengan mode
+    if (res === 'Guru Mapel') {
+      new bootstrap.Tab(document.querySelector('button[data-bs-target="#tab-gurumapel"]')).show();
+    } else if (res === 'Guru BK') {
+      new bootstrap.Tab(document.querySelector('button[data-bs-target="#tab-gurubk"]')).show();
+    } else {
+      new bootstrap.Tab(document.querySelector('button[data-bs-target="#tab-siswa"]')).show();
+    }
+
     Swal.fire('Berhasil', `Mode Mengajar diset ke: ${res}`, 'success');
     refreshDropdowns();
     hideLoader();
