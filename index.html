@@ -46,8 +46,7 @@
                 alt="Logo Aplikasi" class="mb-3 animate-float"
                 style="width: 100px; height: 100px; border-radius: 20px; object-fit: cover; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
 
-            <p class="hero-subtitle mb-1 fw-bold" style="font-size: 1.1rem; color: #f8f9fa;">Sistem Elektronik Manajemen
-                Urusan Administrasi Guru</p>
+            <p class="hero-subtitle mb-1 fw-bold" style="font-size: 1.1rem; color: #f8f9fa;"><span class="text-warning">S</span>istem <span class="text-warning">E</span>lektronik <span class="text-warning">M</span>anajemen <span class="text-warning">U</span>rusan <span class="text-warning">A</span>dministrasi <span class="text-warning">GURU</span></p>
             <p class="hero-subtitle mb-3" id="landing-nama-sekolah">Platform Digital Terpadu</p>
 
             <div class="mt-4">
@@ -65,7 +64,9 @@
             <p class="mb-0">
                 <a href="#" class="text-white text-decoration-underline"
                     onclick="openModal('modalPrivacyPolicy'); return false;">Privacy Policy</a> |
-                Powered by: <a href='https://www.farypin-inovasiteknologi.com' rel='dofollow' style='color:blue;'>PT
+                Powered by: <a href='#'
+                    onclick="openExternal('https://www.farypin-inovasiteknologi.com'); return false;" rel='dofollow'
+                    style='color:blue;'>PT
                     Farypin Inovasi Teknologi</a>
             </p>
         </div>
@@ -148,6 +149,12 @@
                     style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; margin-bottom: 8px;">
                 <h5 class="mb-0 fw-bold">SEMUA GURU</h5>
                 <small id="mode-badge" class="badge bg-light text-primary mt-2">Mode: -</small>
+                <br>
+                <small id="net-status-badge" class="badge bg-secondary mt-1">Status: -</small>
+                <div class="mt-2" id="sync-btn-container" style="display:none;">
+                    <button class="btn btn-sm btn-warning w-100 fw-bold" onclick="mulaiSinkronisasi()"><i
+                            class="fa-solid fa-cloud-arrow-up"></i> Sinkronisasi</button>
+                </div>
             </div>
             <div class="mt-3">
                 <a href="#" class="nav-item active nav-root" onclick="nav('dashboard')"><i
@@ -158,20 +165,32 @@
                 <a href="#" class="nav-item nav-root" onclick="nav('profil-saya')"><i
                         class="fa-solid fa-user w-20px"></i>
                     Profil Saya</a>
+                <a href="#" class="nav-item nav-root" onclick="nav('panduan')"><i
+                        class="fa-solid fa-book-open w-20px"></i>
+                    Buku Panduan</a>
 
                 <div id="nav-operational" style="display: none;">
                     <div class="px-3 mb-2 mt-3 text-warning fw-bold small" id="sidebar-ta-label">TA: -</div>
                     <a href="#" class="nav-item" onclick="nav('dashboard-ta')"><i
                             class="fa-solid fa-chart-pie w-20px"></i>
                         Dashboard</a>
-                    <a href="#" class="nav-item" onclick="nav('kelolamapel')"><i
+                    <a href="#" class="nav-item" onclick="nav('kelolamapel')" id="nav-kelolamapel"><i
                             class="fa-solid fa-layer-group w-20px"></i>
-                        Kelola Kelas & Mapel</a>
-                    <a href="#" class="nav-item" onclick="nav('kelolamengajar')"><i
+                        Kelola Kamar & Relasi</a>
+                    <a href="#" class="nav-item bg-purple nav-reguler" onclick="nav('kelolamengajar')"><i
                             class="fa-solid fa-chalkboard-user w-20px"></i> Kelola Mengajar</a>
-                    <a href="#" class="nav-item" onclick="nav('kelolanilaiujian')"><i
+                    <a href="#" class="nav-item nav-reguler" onclick="nav('kelolanilaiujian')"><i
                             class="fa-solid fa-file-signature w-20px"></i> Kelola Nilai Ujian</a>
-                    <a href="#" class="nav-item" onclick="nav('cetaklaporan')"><i class="fa-solid fa-print w-20px"></i>
+                            
+                    <!-- Menu Khusus Guru BK -->
+                    <a href="#" class="nav-item nav-bk bg-purple" style="display:none;" onclick="nav('rpl-bk')"><i
+                            class="fa-solid fa-file-contract w-20px"></i> RPL & Layanan BK</a>
+                    <a href="#" class="nav-item nav-bk" style="display:none;" onclick="nav('home-visit')"><i
+                            class="fa-solid fa-house-chimney-user w-20px"></i> Kunjungan Rumah</a>
+
+                    <a href="#" class="nav-item" onclick="nav('bukukasus')" id="nav-bukukasus"><i
+                            class="fa-solid fa-book-medical w-20px"></i> Konseling & Kasus</a>
+                    <a href="#" class="nav-item nav-reguler" onclick="nav('cetaklaporan')"><i class="fa-solid fa-print w-20px"></i>
                         Cetak Laporan</a>
                     <a href="#" class="nav-item text-warning mt-3" onclick="keluarTahunAjaran()"><i
                             class="fa-solid fa-arrow-left w-20px"></i>
@@ -266,21 +285,69 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Grafik Analitik -->
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0 rounded-4 h-100">
+                            <div class="card-header bg-transparent border-0 fw-bold"><i
+                                    class="fa-solid fa-chart-pie text-primary me-2"></i>Status Kehadiran Siswa (Bulan
+                                Ini)</div>
+                            <div class="card-body d-flex align-items-center justify-content-center"
+                                style="max-height:250px">
+                                <canvas id="chart-kehadiran"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0 rounded-4 h-100">
+                            <div class="card-header bg-transparent border-0 fw-bold"><i
+                                    class="fa-solid fa-chart-bar text-success me-2"></i>Rata-rata Nilai per Kelas</div>
+                            <div class="card-body d-flex align-items-center justify-content-center"
+                                style="max-height:250px">
+                                <canvas id="chart-nilai"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card shadow-sm border-0 rounded-4">
+                            <div class="card-header bg-transparent border-0 fw-bold"><i
+                                    class="fa-solid fa-exclamation-triangle text-warning me-2"></i>Siswa Perlu Perhatian
+                                (Sering Alfa / Nilai Rendah)</div>
+                            <div class="card-body" id="dash-perhatian-siswa">
+                                <p class="text-muted small mb-0">Memuat data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- PAGE 2: KELOLA MAPEL (DUAL MODE) -->
             <div id="kelolamapel" class="page">
                 <h3 class="fw-bold mb-4">Pengaturan Kamar Mapel & Kelas</h3>
 
-                <ul class="nav nav-tabs flex-nowrap border-bottom-0" id="mapelTabs"
-                    style="overflow-x: auto; white-space: nowrap; gap: 4px;">
+                <ul class="nav flex-nowrap border-0 gap-2 mb-0" id="mapelTabs"
+                    style="overflow-x: auto; white-space: nowrap;">
                     <li class="nav-item flex-fill text-center">
-                        <button class="nav-link active w-100 rounded-top text-truncate px-2" data-bs-toggle="tab"
-                            data-bs-target="#tab-gurukelas">Mode Guru Kelas</button>
+                        <button class="nav-link mode-tab active w-100 rounded-3 px-3 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 tab-gurukelas" data-bs-toggle="tab"
+                            data-bs-target="#tab-gurukelas">
+                            <i class="fa-solid fa-chalkboard-teacher"></i>
+                            <span>Mode Guru Kelas</span>
+                        </button>
                     </li>
                     <li class="nav-item flex-fill text-center">
-                        <button class="nav-link w-100 rounded-top text-truncate px-2" data-bs-toggle="tab"
-                            data-bs-target="#tab-gurumapel">Mode Guru Mapel</button>
+                        <button class="nav-link mode-tab w-100 rounded-3 px-3 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 tab-gurumapel" data-bs-toggle="tab"
+                            data-bs-target="#tab-gurumapel">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>Mode Guru Mapel</span>
+                        </button>
+                    </li>
+                    <li class="nav-item flex-fill text-center">
+                        <button class="nav-link mode-tab w-100 rounded-3 px-3 py-2 fw-bold d-flex align-items-center justify-content-center gap-2 tab-gurubk" data-bs-toggle="tab"
+                            data-bs-target="#tab-gurubk">
+                            <i class="fa-solid fa-user-shield"></i>
+                            <span>Mode Guru BK</span>
+                        </button>
                     </li>
                 </ul>
 
@@ -323,6 +390,24 @@
                                 class="fa-solid fa-plus"></i> Tambah Mapel Baru</button>
                         <div id="list-gurumapel" class="row g-3"></div>
                     </div>
+                    
+                    <!-- TAB GURU BK -->
+                    <div class="tab-pane fade" id="tab-gurubk">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="mb-1 fw-bold text-warning">Sistem Kamar: Guru Bimbingan Konseling</h5>
+                                <p class="text-muted small mb-0">Anda membuat daftar "Kelas Binaan" yang menjadi tanggung jawab Anda tanpa menautkan Mata Pelajaran.</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span id="badge-status-gurubk" class="badge bg-secondary fs-6">Tidak Aktif</span>
+                                <button class="btn btn-warning" onclick="setMode('Guru BK')"><i
+                                        class="fa-solid fa-check-circle"></i> Aktifkan Mode Ini</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-warning mb-3" onclick="openModalRelasi('Guru BK', 'Induk')"><i
+                                class="fa-solid fa-plus"></i> Tambah Kelas Binaan</button>
+                        <div id="list-gurubk" class="row g-3"></div>
+                    </div>
                 </div>
             </div>
 
@@ -332,12 +417,25 @@
             <div id="kelolamengajar" class="page">
                 <h3 class="fw-bold mb-4">Manajemen Kelas Harian</h3>
 
-                <div class="border-top-0 mt-3">
-                    <!-- Tab Jadwal (Satu-satunya halaman di sini) -->
-                    <div id="tab-jadwal">
-                        <button class="btn btn-primary mb-3" onclick="bukaModalTambahJadwal()"><i
-                                class="fa-solid fa-plus"></i> Tambah Jadwal</button>
+                <ul class="nav nav-tabs mb-3" id="mengajarTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#tab-jadwal-harian">Kelas Harian</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tab-program-guru">Program Guru</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tab-remedial">Remedial & Pengayaan</button>
+                    </li>
+                </ul>
 
+                <div class="tab-content border-top-0 mt-3">
+                    <!-- Tab Jadwal -->
+                    <div class="tab-pane fade show active" id="tab-jadwal-harian">
+                        <div class="d-flex gap-2 mb-3">
+                            <button class="btn btn-primary" onclick="bukaModalTambahJadwal()"><i class="fa-solid fa-plus"></i> Tambah Agenda</button>
+                            <button class="btn btn-success" onclick="exportDaftarAgenda()"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+                        </div>
                         <div class="row g-2 mb-3 align-items-center bg-light p-2 rounded border">
                             <div class="col-md-3">
                                 <label class="form-label small fw-bold mb-1">Filter Bulan</label>
@@ -386,8 +484,161 @@
                                 <tbody id="tbody-Jadwal"></tbody>
                             </table>
                         </div>
+                    </div> <!-- End tab-jadwal-harian -->
+
+                    <!-- Tab Program Guru -->
+                    <div class="tab-pane fade" id="tab-program-guru">
+                        <div class="row g-4 mt-1">
+                            <!-- Arsip Perangkat Pembelajaran -->
+                            <div class="col-md-12">
+                                <h5 class="fw-bold mb-3"><i class="fa-solid fa-folder-open text-primary me-2"></i>Arsip Perangkat Pembelajaran</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="card h-100 shadow-sm border-0 bg-light">
+                                            <div class="card-body text-center p-4">
+                                                <i class="fa-solid fa-file-lines fa-3x text-primary mb-3"></i>
+                                                <h6 class="fw-bold">Silabus / ATP</h6>
+                                                <div id="status-pg-silabus" class="badge bg-secondary mb-3 d-block py-2"><i class="fa-solid fa-xmark"></i> Belum ada file</div>
+                                                <div class="d-flex gap-2 mb-2">
+                                                    <button class="btn btn-sm btn-outline-primary w-100" id="btn-lihat-pg-silabus" style="display:none;" onclick="lihatArsipPG('Silabus')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                                    <button class="btn btn-sm btn-outline-danger" id="btn-hapus-pg-silabus" style="display:none;" onclick="hapusArsipPG('Silabus')"><i class="fa-solid fa-trash"></i></button>
+                                                </div>
+                                                <input type="file" class="form-control form-control-sm" accept=".doc,.docx,.pdf" onchange="uploadArsipPG('Silabus', this)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card h-100 shadow-sm border-0 bg-light">
+                                            <div class="card-body text-center p-4">
+                                                <i class="fa-solid fa-calendar-days fa-3x text-success mb-3"></i>
+                                                <h6 class="fw-bold">Program Tahunan (Prota)</h6>
+                                                <div id="status-pg-prota" class="badge bg-secondary mb-3 d-block py-2"><i class="fa-solid fa-xmark"></i> Belum ada file</div>
+                                                <div class="d-flex gap-2 mb-2">
+                                                    <button class="btn btn-sm btn-outline-success w-100" id="btn-lihat-pg-prota" style="display:none;" onclick="lihatArsipPG('Prota')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                                    <button class="btn btn-sm btn-outline-danger" id="btn-hapus-pg-prota" style="display:none;" onclick="hapusArsipPG('Prota')"><i class="fa-solid fa-trash"></i></button>
+                                                </div>
+                                                <input type="file" class="form-control form-control-sm" accept=".doc,.docx,.pdf" onchange="uploadArsipPG('Prota', this)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card h-100 shadow-sm border-0 bg-light">
+                                            <div class="card-body text-center p-4">
+                                                <i class="fa-solid fa-calendar-week fa-3x text-warning mb-3"></i>
+                                                <h6 class="fw-bold">Program Semester (Promes)</h6>
+                                                <div id="status-pg-promes" class="badge bg-secondary mb-3 d-block py-2"><i class="fa-solid fa-xmark"></i> Belum ada file</div>
+                                                <div class="d-flex gap-2 mb-2">
+                                                    <button class="btn btn-sm btn-outline-warning w-100" id="btn-lihat-pg-promes" style="display:none;" onclick="lihatArsipPG('Promes')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                                    <button class="btn btn-sm btn-outline-danger" id="btn-hapus-pg-promes" style="display:none;" onclick="hapusArsipPG('Promes')"><i class="fa-solid fa-trash"></i></button>
+                                                </div>
+                                                <input type="file" class="form-control form-control-sm" accept=".doc,.docx,.pdf" onchange="uploadArsipPG('Promes', this)">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Tabel Agenda Program Guru -->
+                            <div class="col-md-12 mt-5">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold text-secondary mb-0">Tabel Program / Agenda</h5>
+                                    <div>
+                                        <button class="btn btn-sm btn-success me-2" onclick="exportProgramGuru()"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+                                        <button class="btn btn-sm btn-primary" onclick="bukaModalProgramGuru()"><i class="fa-solid fa-plus"></i> Tambah Program</button>
+                                    </div>
+                                </div>
+                                <div class="row g-2 mb-3 align-items-end bg-light p-2 rounded border">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold mb-1">Filter Jenis Program</label>
+                                        <select id="filter-pg-jenis" class="form-select form-select-sm" onchange="renderTabelProgramGuru()">
+                                            <option value="">Semua Jenis</option>
+                                            <option value="Tahunan">Tahunan</option>
+                                            <option value="Semesteran">Semesteran</option>
+                                            <option value="Bulanan">Bulanan</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold mb-1">Filter Mapel</label>
+                                        <select id="filter-pg-mapel" class="form-select form-select-sm" onchange="renderTabelProgramGuru()">
+                                            <option value="">Semua Mapel</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold mb-1">Filter Kelas</label>
+                                        <select id="filter-pg-kelas" class="form-select form-select-sm" onchange="renderTabelProgramGuru()">
+                                            <option value="">Semua Kelas</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover align-middle text-center" style="font-size:0.9rem;">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="5%">No</th>
+                                                <th width="10%">Jenis</th>
+                                                <th width="15%">Mapel</th>
+                                                <th width="10%">Kelas</th>
+                                                <th width="30%">Materi Pokok / CP</th>
+                                                <th width="10%">Alokasi Waktu</th>
+                                                <th width="10%">Bulan Pelaksanaan</th>
+                                                <th width="10%">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbody-program-guru"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+
+                    <!-- Tab Remedial & Pengayaan -->
+                    <div class="tab-pane fade" id="tab-remedial">
+                        <div class="d-flex justify-content-between align-items-center mb-3 mt-1">
+                            <h5 class="fw-bold text-secondary mb-0">Data Remedial & Pengayaan</h5>
+                            <div>
+                                <button class="btn btn-sm btn-success me-2" onclick="exportRemedial()"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+                                <button class="btn btn-sm btn-primary" onclick="bukaModalRemedial()"><i class="fa-solid fa-plus"></i> Tambah Data</button>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3 align-items-end bg-light p-2 rounded border">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Bulan</label>
+                                <input type="month" id="filter-rem-bulan" class="form-control form-control-sm" onchange="renderTabelRemedial()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Filter Mapel</label>
+                                <select id="filter-rem-mapel" class="form-select form-select-sm" onchange="renderTabelRemedial()">
+                                    <option value="">Semua Mapel</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Filter Kelas</label>
+                                <select id="filter-rem-kelas" class="form-select form-select-sm" onchange="renderTabelRemedial()">
+                                    <option value="">Semua Kelas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle text-center" style="font-size:0.9rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th width="10%">Tanggal</th>
+                                        <th width="10%">Kelas & Mapel</th>
+                                        <th width="20%">Materi Pokok / KD</th>
+                                        <th width="10%">Kegiatan</th>
+                                        <th width="15%">Nama Siswa</th>
+                                        <th width="5%">Nilai Awal</th>
+                                        <th width="5%">Nilai Akhir</th>
+                                        <th width="10%">Keterangan</th>
+                                        <th width="10%">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-remedial"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div> <!-- End tab-content -->
             </div>
 
             <!-- PAGE 4.5: KELOLA NILAI UJIAN -->
@@ -429,6 +680,39 @@
                     <div class="col-md-4 mt-3 d-flex align-items-end">
                         <button class="btn btn-secondary w-100" onclick="loadNilaiUjianMatrix()"><i
                                 class="fa-solid fa-rotate"></i> Muat</button>
+                    </div>
+                </div>
+
+                <div id="arsip-ujian-container" class="mb-4 bg-white p-3 rounded border shadow-sm" style="display: none;">
+                    <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-folder-open"></i> Arsip Berkas Ujian</h6>
+                    <div class="row g-3 text-center">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Kisi-kisi Ujian</label>
+                            <input class="form-control form-control-sm mb-2" type="file" id="arsip-kisi-file" accept=".pdf,.docx,.xlsx,image/*">
+                            <button class="btn btn-sm btn-primary w-100 mb-1" onclick="uploadFileUjian('File_Kisi')"><i class="fa-solid fa-upload"></i> Upload</button>
+                            <div id="btn-kisi-actions" style="display: none;">
+                                <button class="btn btn-sm btn-outline-info w-100 mb-1" onclick="lihatFileUjian('File_Kisi')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                <button class="btn btn-sm btn-outline-danger w-100" onclick="hapusFileUjian('File_Kisi')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Soal Ujian</label>
+                            <input class="form-control form-control-sm mb-2" type="file" id="arsip-soal-file" accept=".pdf,.docx,.xlsx,image/*">
+                            <button class="btn btn-sm btn-primary w-100 mb-1" onclick="uploadFileUjian('File_Soal')"><i class="fa-solid fa-upload"></i> Upload</button>
+                            <div id="btn-soal-actions" style="display: none;">
+                                <button class="btn btn-sm btn-outline-info w-100 mb-1" onclick="lihatFileUjian('File_Soal')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                <button class="btn btn-sm btn-outline-danger w-100" onclick="hapusFileUjian('File_Soal')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Kunci Jawaban</label>
+                            <input class="form-control form-control-sm mb-2" type="file" id="arsip-kunci-file" accept=".pdf,.docx,.xlsx,image/*">
+                            <button class="btn btn-sm btn-primary w-100 mb-1" onclick="uploadFileUjian('File_Kunci')"><i class="fa-solid fa-upload"></i> Upload</button>
+                            <div id="btn-kunci-actions" style="display: none;">
+                                <button class="btn btn-sm btn-outline-info w-100 mb-1" onclick="lihatFileUjian('File_Kunci')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                <button class="btn btn-sm btn-outline-danger w-100" onclick="hapusFileUjian('File_Kunci')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -502,9 +786,14 @@
                             data-bs-target="#tab-lap-absensi">Laporan Absensi</button></li>
                     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
                             data-bs-target="#tab-lap-ujian">Laporan Nilai Ujian (Sumatif)</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab"
+                            data-bs-target="#tab-lap-rapor"><i class="fa-solid fa-file-pdf me-1 text-danger"></i>Cetak
+                            Rapor Bayangan </button></li>
                 </ul>
                 <div class="tab-content border-top-0">
                     <div class="tab-pane fade show active" id="tab-lap-absensi">
+                        <!-- BAGIAN: REKAP BULANAN -->
+                        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2">Rekap Absensi Bulanan</h6>
                         <div class="row g-2 mb-4 bg-light p-3 rounded border">
                             <div class="col-md-2">
                                 <label class="form-label small fw-bold">Kelas</label>
@@ -526,7 +815,37 @@
                             </div>
                             <div class="col-md-4 d-flex align-items-end gap-2">
                                 <button class="btn btn-success w-100" onclick="exportToExcel('absensi')"><i
-                                        class="fa-solid fa-file-excel"></i> Excel</button>
+                                        class="fa-solid fa-file-excel"></i> Unduh Excel Bulanan</button>
+                            </div>
+                        </div>
+
+                        <!-- BAGIAN: REKAP SEMESTER -->
+                        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2 mt-4">Rekap Absensi per Semester</h6>
+                        <div class="row g-2 mb-4 bg-light p-3 rounded border">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Kelas</label>
+                                <select id="lap-abs-smt-kelas" class="form-select dropdown-kelas"
+                                    onchange="updateDependentDropdown('kelas', 'lap-abs-smt-kelas', 'lap-abs-smt-mapel')">
+                                    <option value="">Pilih...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Mapel</label>
+                                <select id="lap-abs-smt-mapel" class="form-select dropdown-mapel"
+                                    onchange="updateDependentDropdown('mapel', 'lap-abs-smt-mapel', 'lap-abs-smt-kelas')">
+                                    <option value="">Pilih...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Semester</label>
+                                <select id="lap-abs-smt-pilihan" class="form-select">
+                                    <option value="1">Semester 1 (Ganjil)</option>
+                                    <option value="2">Semester 2 (Genap)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end gap-2">
+                                <button class="btn btn-success w-100" onclick="exportToExcel('absensi_semester')"><i
+                                        class="fa-solid fa-file-excel"></i> Unduh Excel Semester</button>
                             </div>
                         </div>
                     </div>
@@ -555,9 +874,38 @@
                             </div>
                             <div class="col-md-2 d-flex align-items-end gap-2">
                                 <button class="btn btn-success w-100" onclick="exportToExcel('nilai_ujian')"><i
-                                        class="fa-solid fa-file-excel"></i> Excel</button>
+                                        class="fa-solid fa-file-excel"></i> Unduh Excel</button>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Tab e-Rapor PDF -->
+                    <div class="tab-pane fade" id="tab-lap-rapor">
+                        <div class="alert alert-info border-0 shadow-sm mt-3">
+                            <i class="fa-solid fa-info-circle me-2"></i>
+                            Pilih kelas, lalu klik <strong>Cetak Rapor Bayangan</strong> untuk membangkitkan ringkasan
+                            nilai dan kehadiran per siswa dalam format PDF.
+                        </div>
+                        <div class="row g-2 mb-4 bg-light p-3 rounded border">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Kelas</label>
+                                <select id="rap-kelas" class="form-select dropdown-kelas-all">
+                                    <option value="">Pilih Kelas...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Semester</label>
+                                <select id="rap-smt" class="form-select">
+                                    <option value="1">Ganjil (1)</option>
+                                    <option value="2">Genap (2)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end gap-2">
+                                <button class="btn btn-danger w-100" onclick="cetakERapor()"><i
+                                        class="fa-solid fa-file-pdf"></i> Cetak Rapor Bayangan</button>
+                            </div>
+                        </div>
+                        <div id="rapor-preview-area"></div>
                     </div>
                 </div>
             </div>
@@ -601,22 +949,28 @@
                                             type="url" id="peng-website" class="form-control"></div>
 
                                     <!-- Upload Logo (Rasio 1:1) -->
-                                    <div class="col-md-6 text-center border p-3 rounded bg-light mt-3">
+                                    <div class="col-md-6 text-center border p-3 rounded bg-light mt-3 position-relative">
                                         <label class="form-label fw-bold d-block">Logo Instansi (Kiri)</label>
-                                        <img id="prev-logo-kiri" class="img-thumbnail rounded mb-2 shadow-sm"
-                                            style="width:120px; height:120px; object-fit:cover; display:inline-block; background:#fff;"
-                                            src="https://placehold.co/200x200/eee/999?text=Logo+Kiri" alt="Logo Kiri">
-                                        <input type="file" class="form-control mx-auto w-75" accept="image/*"
+                                        <div class="position-relative d-inline-block">
+                                            <img id="prev-logo-kiri" class="img-thumbnail rounded mb-2 shadow-sm"
+                                                style="width:120px; height:120px; object-fit:cover; background:#fff;"
+                                                src="https://placehold.co/200x200/eee/999?text=Logo+Kiri" alt="Logo Kiri">
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="hapusGambar('kiri')" title="Hapus Logo"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                        <input type="file" id="file-logo-kiri" class="form-control mx-auto w-75 mt-2" accept="image/*"
                                             onchange="openCropperModal(this, 'kiri', 1)">
                                         <input type="hidden" id="base64-logo-kiri">
                                     </div>
 
-                                    <div class="col-md-6 text-center border p-3 rounded bg-light mt-3">
+                                    <div class="col-md-6 text-center border p-3 rounded bg-light mt-3 position-relative">
                                         <label class="form-label fw-bold d-block">Logo Sekolah (Kanan)</label>
-                                        <img id="prev-logo-kanan" class="img-thumbnail rounded mb-2 shadow-sm"
-                                            style="width:120px; height:120px; object-fit:cover; display:inline-block; background:#fff;"
-                                            src="https://placehold.co/200x200/eee/999?text=Logo+Kanan" alt="Logo Kanan">
-                                        <input type="file" class="form-control mx-auto w-75" accept="image/*"
+                                        <div class="position-relative d-inline-block">
+                                            <img id="prev-logo-kanan" class="img-thumbnail rounded mb-2 shadow-sm"
+                                                style="width:120px; height:120px; object-fit:cover; background:#fff;"
+                                                src="https://placehold.co/200x200/eee/999?text=Logo+Kanan" alt="Logo Kanan">
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="hapusGambar('kanan')" title="Hapus Logo"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                        <input type="file" id="file-logo-kanan" class="form-control mx-auto w-75 mt-2" accept="image/*"
                                             onchange="openCropperModal(this, 'kanan', 1)">
                                         <input type="hidden" id="base64-logo-kanan">
                                     </div>
@@ -645,15 +999,19 @@
                                                     class="fa-solid fa-eye"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Upload Background Login</label>
-                                        <div class="p-2 border rounded bg-light shadow-sm text-center">
-                                            <input type="file" class="form-control form-control-sm" accept="image/*"
-                                                onchange="previewBackground(this)">
-                                            <small class="text-muted d-block mt-1">Biarkan kosong jika tidak ingin
-                                                mengubah</small>
-                                            <input type="hidden" id="base64-bg-login">
+                                    <div class="col-md-6 text-center border p-3 rounded bg-light mt-3 position-relative">
+                                        <label class="form-label fw-bold d-block">Upload Background Login</label>
+                                        <div class="position-relative d-inline-block">
+                                            <img id="prev-bg-login" class="img-thumbnail rounded mb-2 shadow-sm"
+                                                style="width:240px; height:135px; object-fit:cover; background:#fff; display:none;"
+                                                src="" alt="Background Login">
+                                            <button type="button" id="btn-hapus-bg" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="hapusGambar('bg')" title="Hapus Background" style="display:none;"><i class="fa-solid fa-trash"></i></button>
                                         </div>
+                                        <input type="file" id="file-bg-login" class="form-control form-control-sm mx-auto w-75 mt-2" accept="image/*"
+                                            onchange="previewBackground(this)">
+                                        <small class="text-muted d-block mt-1">Biarkan kosong jika tidak ingin
+                                            mengubah</small>
+                                        <input type="hidden" id="base64-bg-login">
                                     </div>
                                     <div class="col-12 text-end">
                                         <button type="button" class="btn btn-primary"
@@ -709,6 +1067,500 @@
                     </div>
                 </div>
             </div>
+            <!-- PAGE: RPL BK -->
+            <div id="rpl-bk" class="page">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0 text-purple"><i class="fa-solid fa-file-contract me-2"></i>RPL & Program BK</h3>
+                </div>
+
+                <ul class="nav nav-tabs mb-3" id="rplTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold text-purple" data-bs-toggle="tab" data-bs-target="#tab-rpl-main">Daftar RPL</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold text-purple" data-bs-toggle="tab" data-bs-target="#tab-program-bk">Program BK</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold text-purple" data-bs-toggle="tab" data-bs-target="#tab-arsip-bk">Arsip File BK</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tab-rpl-main">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-secondary mb-0">Data RPL</h5>
+                            <div>
+                                <button class="btn btn-sm btn-success me-2" onclick="exportRPLExcel()"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+                                <button class="btn btn-sm btn-purple text-white" onclick="bukaModalRPL()"><i class="fa-solid fa-plus"></i> Tambah RPL</button>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3 align-items-end bg-light p-2 rounded border">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Cari Topik / Sasaran</label>
+                                <input type="text" id="filter-rpl-topik" class="form-control form-control-sm"
+                                    placeholder="Cari..." onkeyup="renderTabelRPL()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Filter Kelas Sasaran</label>
+                                <select id="filter-rpl-kelas" class="form-select form-select-sm dropdown-kelas"
+                                    onchange="renderTabelRPL()">
+                                    <option value="">Semua Kelas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Bulan</label>
+                                <input type="month" id="filter-rpl-bulan" class="form-control form-control-sm"
+                                    onchange="renderTabelRPL()">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-bordered text-center">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="120">Tgl Pelaksanaan</th>
+                                        <th width="120">Sasaran (Kelas)</th>
+                                        <th>Topik Layanan</th>
+                                        <th width="150">Jenis Layanan</th>
+                                        <th width="150">Lampiran RPL</th>
+                                        <th width="130">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-RPL"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB PROGRAM BK -->
+                    <div class="tab-pane fade" id="tab-program-bk">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-secondary mb-0">Daftar Program BK</h5>
+                            <div>
+                                <button class="btn btn-sm btn-success me-2" onclick="exportProgramBKExcel()"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+                                <button class="btn btn-sm btn-purple text-white" onclick="bukaModalProgramBK()"><i class="fa-solid fa-plus"></i> Tambah Program</button>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3 align-items-end bg-light p-2 rounded border">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Pilih Jenis Program</label>
+                                <select id="filter-pbk-jenis" class="form-select form-select-sm" onchange="renderTabelProgramBK()">
+                                    <option value="">Semua Jenis</option>
+                                    <option value="Tahunan">Tahunan</option>
+                                    <option value="Semesteran">Semesteran</option>
+                                    <option value="Bulanan">Bulanan</option>
+                                    <option value="Mingguan">Mingguan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Cari Topik / Sasaran</label>
+                                <input type="text" id="filter-pbk-topik" class="form-control form-control-sm" placeholder="Cari..." onkeyup="renderTabelProgramBK()">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle text-center" style="font-size:0.9rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th width="15%">Jenis Program</th>
+                                        <th width="15%">Bidang Layanan</th>
+                                        <th width="30%">Materi / Topik</th>
+                                        <th width="10%">Sasaran</th>
+                                        <th width="10%">Pelaksanaan</th>
+                                        <th width="10%">Status</th>
+                                        <th width="10%">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-program-bk"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB ARSIP BK -->
+                    <div class="tab-pane fade" id="tab-arsip-bk">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-hover align-middle text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th width="35%">Jenis Dokumen</th>
+                                        <th width="35%">Status Arsip</th>
+                                        <th width="25%">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td class="fw-bold text-start">Silabus BK</td>
+                                        <td>
+                                            <span id="status-arsipbk-silabus" class="badge bg-secondary"><i class="fa-solid fa-xmark"></i> Belum ada file</span>
+                                        </td>
+                                        <td>
+                                            <input type="file" id="file-arsipbk-silabus" class="d-none" accept=".pdf,.doc,.docx,.xls,.xlsx,image/*" onchange="uploadArsipBK('Silabus', this)">
+                                            <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-arsipbk-silabus').click()"><i class="fa-solid fa-upload"></i> Upload</button>
+                                            <button class="btn btn-sm btn-outline-success ms-1" id="btn-lihat-arsipbk-silabus" style="display:none;" onclick="lihatArsipBK('Silabus')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                            <button class="btn btn-sm btn-outline-danger ms-1" id="btn-hapus-arsipbk-silabus" style="display:none;" onclick="hapusArsipBK('Silabus')"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td class="fw-bold text-start">Prota & Prosem</td>
+                                        <td>
+                                            <span id="status-arsipbk-prota" class="badge bg-secondary"><i class="fa-solid fa-xmark"></i> Belum ada file</span>
+                                        </td>
+                                        <td>
+                                            <input type="file" id="file-arsipbk-prota" class="d-none" accept=".pdf,.doc,.docx,.xls,.xlsx,image/*" onchange="uploadArsipBK('Prota_Prosem', this)">
+                                            <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-arsipbk-prota').click()"><i class="fa-solid fa-upload"></i> Upload</button>
+                                            <button class="btn btn-sm btn-outline-success ms-1" id="btn-lihat-arsipbk-prota" style="display:none;" onclick="lihatArsipBK('Prota_Prosem')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                            <button class="btn btn-sm btn-outline-danger ms-1" id="btn-hapus-arsipbk-prota" style="display:none;" onclick="hapusArsipBK('Prota_Prosem')"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td class="fw-bold text-start">Administrasi Lainnya</td>
+                                        <td>
+                                            <span id="status-arsipbk-admin" class="badge bg-secondary"><i class="fa-solid fa-xmark"></i> Belum ada file</span>
+                                        </td>
+                                        <td>
+                                            <input type="file" id="file-arsipbk-admin" class="d-none" accept=".pdf,.doc,.docx,.xls,.xlsx,image/*" onchange="uploadArsipBK('Administrasi', this)">
+                                            <button class="btn btn-sm btn-primary" onclick="document.getElementById('file-arsipbk-admin').click()"><i class="fa-solid fa-upload"></i> Upload</button>
+                                            <button class="btn btn-sm btn-outline-success ms-1" id="btn-lihat-arsipbk-admin" style="display:none;" onclick="lihatArsipBK('Administrasi')"><i class="fa-solid fa-eye"></i> Lihat</button>
+                                            <button class="btn btn-sm btn-outline-danger ms-1" id="btn-hapus-arsipbk-admin" style="display:none;" onclick="hapusArsipBK('Administrasi')"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: HOME VISIT -->
+            <div id="home-visit" class="page">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0 text-purple"><i class="fa-solid fa-house-chimney-user me-2"></i>Kunjungan Rumah (Home Visit)</h3>
+                    <div>
+                        <button class="btn btn-success me-2" onclick="exportHomeVisitExcel()"><i
+                                class="fa-solid fa-file-excel"></i> Unduh Rekap</button>
+                        <button class="btn btn-purple text-white" onclick="bukaModalHomeVisit()"><i
+                                class="fa-solid fa-plus"></i> Tambah Catatan Visit</button>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3 align-items-end bg-light p-2 rounded border">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold mb-1">Cari Nama Siswa</label>
+                        <input type="text" id="filter-visit-nama" class="form-control form-control-sm"
+                            placeholder="Cari..." onkeyup="renderTabelHomeVisit()">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold mb-1">Bulan</label>
+                        <input type="month" id="filter-visit-bulan" class="form-control form-control-sm"
+                            onchange="renderTabelHomeVisit()">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle table-bordered text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th width="110">Tanggal</th>
+                                <th width="180" class="text-start">Nama Siswa (Kelas)</th>
+                                <th width="200" class="text-start">Ortu / Wali & No HP</th>
+                                <th width="200" class="text-start">Alamat Ortu</th>
+                                <th class="text-start">Tujuan Kunjungan</th>
+                                <th class="text-start">Hasil Kunjungan</th>
+                                <th width="90">Foto</th>
+                                <th width="120">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-HomeVisit"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: BUKU KASUS SISWA -->
+            <div id="bukukasus" class="page">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-book-medical text-danger me-2"></i>Buku Kasus & Konseling
+                    </h3>
+                </div>
+
+                <ul class="nav nav-tabs mb-3" id="kasusTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold text-danger" data-bs-toggle="tab" data-bs-target="#tab-kasus-main">Daftar Catatan Kasus</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold text-danger" data-bs-toggle="tab" data-bs-target="#tab-surat-peringatan">Riwayat Surat Peringatan</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold text-danger" data-bs-toggle="tab" data-bs-target="#tab-poin-pelanggaran">Daftar Poin Pelanggaran</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- TAB KASUS MAIN -->
+                    <div class="tab-pane fade show active" id="tab-kasus-main">
+                        <div class="d-flex justify-content-between mb-3 align-items-center">
+                            <h5 class="fw-bold mb-0">Daftar Catatan Kasus</h5>
+                            <div>
+                                <button class="btn btn-success me-2" onclick="exportBukuKasusExcel()"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+                                <button class="btn btn-danger" onclick="openModal('modalBukuKasus')"><i class="fa-solid fa-plus"></i> Tambah Catatan</button>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3 align-items-end bg-light p-2 rounded border">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Cari Nama / NIS Siswa</label>
+                                <input type="text" id="filter-kasus-nama" class="form-control form-control-sm"
+                                    placeholder="Cari..." onkeyup="renderTabelBukuKasus()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Filter Kelas</label>
+                                <select id="filter-kasus-kelas" class="form-select form-select-sm dropdown-kelas"
+                                    onchange="renderTabelBukuKasus()">
+                                    <option value="">Semua Kelas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Filter Jenis Kasus</label>
+                                <select id="filter-kasus-jenis" class="form-select form-select-sm"
+                                    onchange="renderTabelBukuKasus()">
+                                    <option value="">Semua Jenis</option>
+                                    <option value="Perilaku">Perilaku</option>
+                                    <option value="Akademik">Akademik</option>
+                                    <option value="Kehadiran">Kehadiran</option>
+                                    <option value="Prestasi">Prestasi</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold mb-1">Filter Bulan</label>
+                                <input type="month" id="filter-kasus-bulan" class="form-control form-control-sm"
+                                    onchange="renderTabelBukuKasus()">
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Siswa (NIS)</th>
+                                        <th>Kelas</th>
+                                        <th>Jenis & Pelanggaran</th>
+                                        <th>Catatan</th>
+                                        <th>Tindak Lanjut</th>
+                                        <th>Status</th>
+                                        <th>Keterangan</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-buku-kasus"></tbody>
+                            </table>
+                        </div>
+                        <div id="kasus-empty" class="text-center text-muted py-5" style="display:none;">
+                            <i class="fa-solid fa-book-open fa-3x mb-3 text-secondary"></i>
+                            <p>Belum ada catatan kasus.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- TAB SURAT PERINGATAN -->
+                    <div class="tab-pane fade" id="tab-surat-peringatan">
+                        <div class="d-flex justify-content-between mb-3 align-items-center">
+                            <h5 class="fw-bold mb-0">Riwayat Surat Peringatan</h5>
+                            <div>
+                                <button class="btn btn-success me-2" onclick="exportSuratPeringatanExcel()"><i class="fa-solid fa-file-excel"></i> Unduh Excel</button>
+                                <button class="btn btn-danger" onclick="bukaModalSuratPeringatan()"><i class="fa-solid fa-plus"></i> Buat Surat Peringatan</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-hover align-middle text-center">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th width="15%">Tgl Surat</th>
+                                        <th class="text-start">Nama Siswa</th>
+                                        <th width="15%">Kelas</th>
+                                        <th width="10%">Total Poin</th>
+                                        <th width="20%">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-surat-peringatan"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB POIN PELANGGARAN -->
+                    <div class="tab-pane fade" id="tab-poin-pelanggaran">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="d-flex align-items-center">
+                                <label class="me-2 fw-bold small">Filter Kategori:</label>
+                                <select id="filter-pelanggaran-jenis" class="form-select form-select-sm" onchange="renderTabelPelanggaran()" style="width:150px;">
+                                    <option value="">Semua Kategori</option>
+                                    <option value="Perilaku">Perilaku</option>
+                                    <option value="Akademik">Akademik</option>
+                                    <option value="Kehadiran">Kehadiran</option>
+                                    <option value="Prestasi">Prestasi</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-success me-2" onclick="openModal('modalImportPelanggaran')"><i class="fa-solid fa-file-import"></i> Import Excel</button>
+                                <button class="btn btn-sm btn-danger" onclick="openModal('modalPelanggaran')"><i class="fa-solid fa-plus"></i> Tambah Pelanggaran</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle text-center">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th width="20%">Kategori Kasus</th>
+                                        <th width="45%" class="text-start">Nama Pelanggaran / Sub Kasus</th>
+                                        <th width="15%">Poin</th>
+                                        <th width="15%">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-pelanggaran"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: PANDUAN -->
+            <div id="panduan" class="page">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold page-title-responsive">Buku Panduan Penggunaan</h3>
+                </div>
+                
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <div class="accordion" id="accordionPanduan">
+                            <!-- Item 1: Pengenalan -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingSatu">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSatu" aria-expanded="true" aria-controls="collapseSatu">
+                                        <strong>1. Pengenalan Aplikasi SEMUA GURU</strong>
+                                    </button>
+                                </h2>
+                                <div id="collapseSatu" class="accordion-collapse collapse show" aria-labelledby="headingSatu" data-bs-parent="#accordionPanduan">
+                                    <div class="accordion-body">
+                                        <p><strong>SEMUA GURU</strong> adalah aplikasi pendukung administrasi dan evaluasi kegiatan belajar mengajar yang dirancang hibrida (Offline dan Online). Aplikasi ini diperuntukkan untuk memfasilitasi kebutuhan seluruh tenaga pendidik.</p>
+                                        <ul>
+                                            <li><strong>Guru Kelas (SD/MI):</strong> Mengelola nilai berbagai mata pelajaran dalam satu kelas.</li>
+                                            <li><strong>Guru Mata Pelajaran (SMP/SMA/SMK):</strong> Mengelola nilai satu atau beberapa mata pelajaran lintas kelas.</li>
+                                            <li><strong>Guru Bimbingan dan Konseling (BK):</strong> Mengelola data pelanggaran, bimbingan, konseling, dan tindak lanjut siswa.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <!-- Item 2: Langkah Awal -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingDua">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDua" aria-expanded="false" aria-controls="collapseDua">
+                                        <strong>2. Langkah-langkah Awal (Pengisian Data Utama)</strong>
+                                    </button>
+                                </h2>
+                                <div id="collapseDua" class="accordion-collapse collapse" aria-labelledby="headingDua" data-bs-parent="#accordionPanduan">
+                                    <div class="accordion-body">
+                                        <ol>
+                                            <li><strong>Menu Pengaturan:</strong> Buka menu Pengaturan, lalu pilih mode yang Anda ampu (Guru Kelas, Guru Mapel, atau Guru BK). Isi data sekolah, data diri, serta logo untuk mempercantik kop surat.</li>
+                                            <li><strong>Data Tahun Ajaran:</strong> Masuk ke <em>Menu Kelola Tahun Ajaran</em> untuk menentukan tahun dan semester aktif.</li>
+                                            <li><strong>Data Siswa:</strong> Di <em>Menu Kelola Siswa</em>, Anda dapat memasukkan data siswa secara manual atau melalui fitur <strong>Import Excel</strong>.</li>
+                                            <li><strong>Data Relasi & Kamar:</strong> Pada menu <em>Kelola Kamar & Relasi</em>, pasangkan siswa dengan kelas dan mata pelajaran yang akan Anda ampu di tahun ajaran yang aktif.</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <!-- Item 3: Petunjuk Guru Kelas / Mapel -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTiga">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTiga" aria-expanded="false" aria-controls="collapseTiga">
+                                        <strong>3. Petunjuk Untuk Guru Kelas & Guru Mapel</strong>
+                                    </button>
+                                </h2>
+                                <div id="collapseTiga" class="accordion-collapse collapse" aria-labelledby="headingTiga" data-bs-parent="#accordionPanduan">
+                                    <div class="accordion-body">
+                                        <ul>
+                                            <li><strong>Kelola Mengajar (Jadwal, Jurnal & Absensi):</strong> Catat jadwal mengajar Anda setiap hari, isi materi/jurnal kelas, dan rekam absensi kehadiran siswa pada hari tersebut.</li>
+                                            <li><strong>Administrasi Guru:</strong> Anda bisa mencatat Arsip Dokumen (Silabus, Prota, Promes) serta merekapitulasi Program Remedial & Pengayaan (Bisa diunduh dalam bentuk Berita Acara Excel).</li>
+                                            <li><strong>Kelola Nilai Reguler:</strong> Catat nilai harian (Tugas/Formatif/Sumatif). Sistem akan otomatis menghitung rata-rata nilai.</li>
+                                            <li><strong>Kelola Nilai Ujian:</strong> Input nilai ujian semester (PTS/PAS). Tersedia fitur <strong>Konversi Nilai</strong> untuk menyesuaikan sebaran nilai dengan rentang minimal/maksimal yang diinginkan agar sesuai KKM.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <!-- Item 4: Petunjuk Guru BK -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingEmpat">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEmpat" aria-expanded="false" aria-controls="collapseEmpat">
+                                        <strong>4. Petunjuk Untuk Guru Bimbingan & Konseling (BK)</strong>
+                                    </button>
+                                </h2>
+                                <div id="collapseEmpat" class="accordion-collapse collapse" aria-labelledby="headingEmpat" data-bs-parent="#accordionPanduan">
+                                    <div class="accordion-body">
+                                        <ul>
+                                            <li><strong>Konseling & Kasus (Buku Kasus):</strong> Menu sentral untuk mencatat setiap kasus, pelanggaran, atau prestasi siswa. Setiap pencatatan pelanggaran akan dikalkulasi poinnya.</li>
+                                            <li><strong>Daftar Poin Pelanggaran:</strong> Atur master poin dan jenis kategori pelanggaran yang berlaku di sekolah Anda.</li>
+                                            <li><strong>Riwayat Surat Peringatan:</strong> Manajemen pembuatan Surat Panggilan / Peringatan apabila poin pelanggaran siswa sudah melampaui batas yang ditentukan.</li>
+                                            <li><strong>Program & Administrasi BK:</strong> Kelola program layanan BK, jadwal konseling khusus, dan arsip dokumen (Silabus, Prota, dll) khusus peran BK.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <!-- Item 5: Contact Helpdesk -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingLima">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseLima" aria-expanded="false" aria-controls="collapseLima">
+                                        <strong>5. Kontak Helpdesk & Dukungan</strong>
+                                    </button>
+                                </h2>
+                                <div id="collapseLima" class="accordion-collapse collapse" aria-labelledby="headingLima" data-bs-parent="#accordionPanduan">
+                                    <div class="accordion-body bg-light rounded-bottom">
+                                        <p>Jika Anda mengalami kendala teknis, menemukan error, atau membutuhkan bantuan operasional aplikasi, tim support <strong><span id="helpdesk-name"></span></strong> siap membantu Anda. Silakan klik salah satu jalur komunikasi di bawah ini:</p>
+                                        <div class="d-flex flex-column gap-2 mt-3">
+                                            <a id="helpdesk-wa" href="#" onclick="openHelpdeskLink(event, this.href)" class="btn btn-outline-success text-start py-2 px-3 shadow-sm rounded-3">
+                                                <i class="fa-brands fa-whatsapp fs-5 me-2 align-middle"></i> <span class="align-middle fw-bold">Chat via WhatsApp</span>
+                                            </a>
+                                            <a id="helpdesk-email" href="#" onclick="openHelpdeskLink(event, this.href)" class="btn btn-outline-danger text-start py-2 px-3 shadow-sm rounded-3">
+                                                <i class="fa-regular fa-envelope fs-5 me-2 align-middle"></i> <span class="align-middle fw-bold">Kirim Pesan Email</span>
+                                            </a>
+                                            <a id="helpdesk-web" href="#" onclick="openHelpdeskLink(event, this.href)" class="btn btn-outline-primary text-start py-2 px-3 shadow-sm rounded-3">
+                                                <i class="fa-solid fa-globe fs-5 me-2 align-middle"></i> <span class="align-middle fw-bold">Kunjungi Website Kami</span>
+                                            </a>
+                                        </div>
+                                        <script>
+                                            function openHelpdeskLink(event, url) {
+                                                event.preventDefault();
+                                                if (window.electronAPI && window.electronAPI.openExternal) {
+                                                    window.electronAPI.openExternal(url);
+                                                } else {
+                                                    window.open(url, '_blank');
+                                                }
+                                            }
+
+                                            document.addEventListener('DOMContentLoaded', () => {
+                                                if (typeof APP_CONFIG !== 'undefined') {
+                                                    document.getElementById('helpdesk-name').textContent = APP_CONFIG.HELPDESK_NAME || "Support";
+                                                    const wa = APP_CONFIG.HELPDESK_WA || "";
+                                                    const waClean = wa.replace(/[^0-9]/g, '');
+                                                    document.getElementById('helpdesk-wa').href = `https://wa.me/${waClean}`;
+                                                    document.getElementById('helpdesk-email').href = `mailto:${APP_CONFIG.HELPDESK_EMAIL || ""}`;
+                                                    document.getElementById('helpdesk-web').href = APP_CONFIG.HELPDESK_WEBSITE || "#";
+                                                }
+                                            });
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- PAGE: PROFIL SAYA -->
             <div id="profil-saya" class="page">
                 <h3 class="fw-bold mb-4 page-title-responsive">Profil Saya</h3>
@@ -718,12 +1570,15 @@
                             <!-- Upload Foto Guru (Rasio 3:4) -->
                             <div class="col-12 text-center mb-4">
                                 <label class="form-label fw-bold d-block">Pas Foto Profil Guru</label>
-                                <div class="p-3 border rounded bg-light d-inline-block shadow-sm hover-float">
-                                    <img id="prev-foto-guru" class="img-thumbnail mb-2"
-                                        style="width:120px; height:160px; object-fit:cover; display:block; margin: 0 auto; background:#fff;"
-                                        src="https://placehold.co/120x160/eee/999?text=Foto+3:4" alt="Foto Guru">
-                                    <input type="file" class="form-control form-control-sm mt-2"
-                                        style="max-width: 200px;" accept="image/*"
+                                <div class="p-3 border rounded bg-light d-inline-block shadow-sm hover-float position-relative">
+                                    <div class="position-relative d-inline-block">
+                                        <img id="prev-foto-guru" class="img-thumbnail mb-2"
+                                            style="width:120px; height:160px; object-fit:cover; display:block; margin: 0 auto; background:#fff;"
+                                            src="https://placehold.co/120x160/eee/999?text=Foto+3:4" alt="Foto Guru">
+                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="hapusGambar('guru')" title="Hapus Foto"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                    <input type="file" id="file-foto-guru" class="form-control form-control-sm mt-2"
+                                        style="max-width: 200px; margin:0 auto;" accept="image/*"
                                         onchange="openCropperModal(this, 'guru', 3/4)">
                                     <input type="hidden" id="base64-foto-guru">
                                 </div>
@@ -777,7 +1632,9 @@
                 <p class="mb-0">
                     <a href="#" class="text-decoration-none" onclick="openModal('modalPrivacyPolicy')">Privacy
                         Policy</a> |
-                    Powered by: <a href='https://www.farypin-inovasiteknologi.com' rel='dofollow' style='color:blue;'>PT
+                    Powered by: <a href='#'
+                        onclick="openExternal('https://www.farypin-inovasiteknologi.com'); return false;" rel='dofollow'
+                        style='color:blue;'>PT
                         Farypin Inovasi Teknologi</a>
                 </p>
             </footer>
@@ -817,6 +1674,10 @@
                 <i class="fa-solid fa-file-signature"></i>
                 <span>Ujian</span>
             </a>
+            <a href="#" class="bottom-nav-item" onclick="nav('bukukasus')" id="bnav-bukukasus">
+                <i class="fa-solid fa-book-medical"></i>
+                <span>Buku Kasus</span>
+            </a>
             <a href="#" class="bottom-nav-item" onclick="nav('cetaklaporan')" id="bnav-cetaklaporan">
                 <i class="fa-solid fa-print"></i>
                 <span>Laporan</span>
@@ -826,8 +1687,393 @@
 
     <!-- ================= MODALS LAINNYA ================= -->
 
+    <!-- MODAL PROGRAM BK -->
+    <div class="modal fade" id="modalProgramBK" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-purple text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-list-check me-2"></i>Form Program BK</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="pbk-id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Jenis Program <span class="text-danger">*</span></label>
+                            <select class="form-select" id="pbk-jenis" required>
+                                <option value="Tahunan">Tahunan</option>
+                                <option value="Semesteran">Semesteran</option>
+                                <option value="Bulanan">Bulanan</option>
+                                <option value="Mingguan">Mingguan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Bidang Layanan <span class="text-danger">*</span></label>
+                            <select class="form-select" id="pbk-bidang" required>
+                                <option value="Pribadi">Pribadi</option>
+                                <option value="Sosial">Sosial</option>
+                                <option value="Belajar">Belajar</option>
+                                <option value="Karir">Karir</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Materi / Topik Kegiatan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pbk-topik" required placeholder="Contoh: Orientasi Belajar Efektif">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Sasaran / Kelas <span class="text-danger">*</span></label>
+                            <select class="form-select dropdown-kelas" id="pbk-sasaran" required>
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Waktu Pelaksanaan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pbk-waktu" required placeholder="Contoh: Juli Minggu Ke-2">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Keterangan / Status</label>
+                            <select class="form-select" id="pbk-status">
+                                <option value="Belum Terlaksana">Belum Terlaksana</option>
+                                <option value="Sedang Berjalan">Sedang Berjalan</option>
+                                <option value="Terlaksana">Terlaksana</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-purple" onclick="simpanProgramBK()"><i class="fa-solid fa-save"></i> Simpan Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal RPL BK -->
+    <div class="modal fade" id="modalRPL" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-purple text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-file-contract me-2"></i>Form Rencana Pelaksanaan Layanan (RPL)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="rpl-id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tanggal Pelaksanaan</label>
+                            <input type="date" id="rpl-tanggal" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Kelas Sasaran</label>
+                            <select id="rpl-kelas" class="form-select dropdown-kelas" required>
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Topik / Materi Layanan</label>
+                            <input type="text" id="rpl-topik" class="form-control" placeholder="Materi / Topik" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Jenis Layanan</label>
+                            <select id="rpl-jenis" class="form-select">
+                                <option value="Bimbingan Klasikal">Bimbingan Klasikal</option>
+                                <option value="Bimbingan Kelompok">Bimbingan Kelompok</option>
+                                <option value="Konseling Individual">Konseling Individual</option>
+                                <option value="Layanan Referal">Layanan Referal / Alih Tangan</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Tujuan Layanan</label>
+                            <textarea id="rpl-tujuan" class="form-control" rows="2" placeholder="Tujuan Umum / Khusus"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Upload Dokumen RPL (PDF/Image)</label>
+                            <input type="file" id="rpl-file" class="form-control" accept=".pdf,image/*">
+                            <small class="text-muted">Maksimal 2MB. Format .pdf, .jpg, .png</small>
+                            <div id="rpl-file-preview" class="mt-2" style="display:none;">
+                                <a href="#" target="_blank" class="badge bg-info text-dark p-2 text-decoration-none" id="rpl-file-link">
+                                    <i class="fa-solid fa-file me-1"></i> Lihat Dokumen Terlampir
+                                </a>
+                                <input type="hidden" id="rpl-file-base64">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-purple text-white" onclick="simpanRPL()"><i
+                            class="fa-solid fa-save"></i> Simpan Data RPL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Home Visit -->
+    <div class="modal fade" id="modalHomeVisit" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-house-chimney-user me-2"></i>Form Kunjungan Rumah (Home Visit)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="visit-id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tanggal Kunjungan</label>
+                            <input type="date" id="visit-tanggal" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Kelas</label>
+                            <select id="visit-kelas" class="form-select dropdown-kelas" onchange="loadSiswaForVisit()" required>
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nama Siswa</label>
+                            <select id="visit-nis" class="form-select" required>
+                                <option value="">Pilih Siswa (pilih kelas dulu)...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Nama Orang Tua / Wali</label>
+                            <input type="text" id="visit-ortu" class="form-control" placeholder="Nama yang ditemui">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">No HP Orang Tua</label>
+                            <input type="text" id="visit-nohp" class="form-control" placeholder="08...">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Alamat Lengkap</label>
+                            <input type="text" id="visit-alamat" class="form-control" placeholder="Alamat rumah">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Tujuan Kunjungan / Latar Belakang Masalah</label>
+                            <textarea id="visit-tujuan" class="form-control" rows="2" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Hasil Wawancara / Kunjungan</label>
+                            <textarea id="visit-hasil" class="form-control" rows="3" required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Upload Foto Bukti Kunjungan (Opsional)</label>
+                            <input type="file" id="visit-foto" class="form-control" accept="image/*">
+                            <small class="text-muted">Maksimal 2MB. Hanya format gambar.</small>
+                            <div class="mt-2 text-center" id="visit-foto-preview-container" style="display:none;">
+                                <img id="visit-foto-preview" src="" style="max-height:150px;" class="rounded border">
+                                <button type="button" class="btn btn-sm btn-outline-danger mt-1 d-block mx-auto" onclick="hapusFotoVisit()">Hapus Foto</button>
+                                <input type="hidden" id="visit-foto-base64">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success" onclick="simpanHomeVisit()"><i
+                            class="fa-solid fa-save"></i> Simpan Catatan Visit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SURAT PERINGATAN -->
+    <div class="modal fade" id="modalSuratPeringatan" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-envelope me-2"></i> Surat Peringatan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="sp-id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Pilih Kelas</label>
+                            <select id="sp-kelas" class="form-select dropdown-kelas" onchange="loadSiswaSuratPeringatan()" required>
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Pilih Siswa</label>
+                            <select id="sp-nis" class="form-select" onchange="loadDetailPelanggaranSiswa()" required>
+                                <option value="">Pilih Siswa (pilih kelas dulu)...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <h6 class="fw-bold text-danger">Riwayat Pelanggaran & Poin Siswa</h6>
+                    <div class="table-responsive mb-3" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered text-center align-middle" id="sp-tabel-pelanggaran">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Kategori</th>
+                                    <th class="text-start">Pelanggaran</th>
+                                    <th>Poin</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sp-tbody-pelanggaran">
+                                <tr><td colspan="4" class="text-muted">Pilih siswa untuk melihat riwayat pelanggaran</td></tr>
+                            </tbody>
+                            <tfoot class="table-dark">
+                                <tr>
+                                    <th colspan="3" class="text-end">Total Poin:</th>
+                                    <th id="sp-total-poin">0</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tanggal Rencana Pemanggilan</label>
+                            <input type="date" id="sp-tgl-pemanggilan" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Waktu Rencana Pemanggilan</label>
+                            <input type="text" id="sp-waktu-pemanggilan" class="form-control" placeholder="Contoh: 09:00 WIB" required>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tempat TTD Surat</label>
+                            <input type="text" id="sp-tempat-ttd" class="form-control" placeholder="Contoh: Jakarta" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tanggal TTD Surat</label>
+                            <input type="date" id="sp-tgl-ttd" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" onclick="simpanSuratPeringatan()">Simpan Surat Peringatan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Buku Kasus Siswa -->
+    <div class="modal fade" id="modalBukuKasus" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modal-kasus-title"><i class="fa-solid fa-book-medical me-2"></i>Tambah
+                        Catatan Kasus</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="kasus-id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tanggal Kejadian</label>
+                            <input type="date" id="kasus-tanggal" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Kelas</label>
+                            <select id="kasus-kelas" class="form-select dropdown-kelas" onchange="loadSiswaForKasus()">
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nama Siswa</label>
+                            <select id="kasus-nis" class="form-select">
+                                <option value="">Pilih Siswa (pilih kelas dulu)...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Kategori Kasus</label>
+                            <select id="kasus-jenis" class="form-select" onchange="updateDropdownPelanggaran()">
+                                <option value="Perilaku">Perilaku</option>
+                                <option value="Akademik">Akademik</option>
+                                <option value="Kehadiran">Kehadiran</option>
+                                <option value="Prestasi">Prestasi (Positif)</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Sub Kasus / Pelanggaran</label>
+                            <select id="kasus-pelanggaran" class="form-select">
+                                <option value="">- Pilih Kategori Dulu -</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Uraian Kasus / Catatan</label>
+                            <textarea id="kasus-catatan" class="form-control" rows="3"
+                                placeholder="Jelaskan secara detail kejadian atau catatan..." required></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Tindak Lanjut</label>
+                            <textarea id="kasus-tindak" class="form-control" rows="2"
+                                placeholder="Tindakan yang sudah/akan dilakukan..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Hasil Tindak Lanjut</label>
+                            <select id="kasus-status" class="form-select">
+                                <option value="Belum Diproses">Belum Diproses</option>
+                                <option value="Sedang Proses">Sedang Proses</option>
+                                <option value="Proses Selesai">Proses Selesai</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Keterangan</label>
+                            <textarea id="kasus-keterangan" class="form-control" rows="2"
+                                placeholder="Keterangan tambahan..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" onclick="simpanBukuKasus()"><i
+                            class="fa-solid fa-save"></i> Simpan Catatan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modal Poin Pelanggaran -->
+    <div class="modal fade" id="modalPelanggaran" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-list-check me-2"></i>Tambah / Edit Pelanggaran</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="pelanggaran-id">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kategori (Jenis Kasus)</label>
+                        <select id="pelanggaran-jenis" class="form-select" required>
+                            <option value="Perilaku">Perilaku</option>
+                            <option value="Akademik">Akademik</option>
+                            <option value="Kehadiran">Kehadiran</option>
+                            <option value="Prestasi">Prestasi</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nama Pelanggaran / Sub Kasus</label>
+                        <input type="text" id="pelanggaran-nama" class="form-control" placeholder="Contoh: Terlambat lebih dari 15 menit" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Poin Pelanggaran</label>
+                        <input type="number" id="pelanggaran-poin" class="form-control" value="0" min="0" required>
+                        <small class="text-muted">Isi 0 jika tidak ada poin / untuk prestasi positif.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" onclick="simpanPelanggaran()"><i class="fa-solid fa-save me-1"></i>Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Relasi Kelas/Mapel -->
+
     <div class="modal fade" id="modalRelasi" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1014,12 +2260,141 @@
     </div>
 
     <!-- Modal Jadwal -->
+    <!-- MODAL PROGRAM GURU -->
+    <div class="modal fade" id="modalProgramGuru" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-list-check me-2"></i>Form Program Guru</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="pg-id">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Jenis Program <span class="text-danger">*</span></label>
+                            <select class="form-select" id="pg-jenis" required>
+                                <option value="Tahunan">Tahunan</option>
+                                <option value="Semesteran">Semesteran</option>
+                                <option value="Bulanan">Bulanan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Mata Pelajaran <span class="text-danger">*</span></label>
+                            <select class="form-select dropdown-mapel" id="pg-mapel" required>
+                                <option value="">Pilih Mapel...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Kelas Sasaran <span class="text-danger">*</span></label>
+                            <select class="form-select dropdown-kelas" id="pg-kelas" required>
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Materi Pokok / Capaian Pembelajaran <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pg-materi" required placeholder="Contoh: Bilangan Bulat">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Alokasi Waktu (JP) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pg-waktu" required placeholder="Contoh: 12 JP">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Bulan Pelaksanaan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="pg-bulan" required placeholder="Contoh: Juli - Agustus">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="simpanProgramGuru()"><i class="fa-solid fa-save"></i> Simpan Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REMEDIAL & PENGAYAAN -->
+    <div class="modal fade" id="modalRemedial" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-graduation-cap me-2"></i>Form Remedial & Pengayaan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="rem-id">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Tanggal Pelaksanaan <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="rem-tanggal" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Mata Pelajaran <span class="text-danger">*</span></label>
+                            <select class="form-select dropdown-mapel" id="rem-mapel" required>
+                                <option value="">Pilih Mapel...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Kelas <span class="text-danger">*</span></label>
+                            <select class="form-select dropdown-kelas" id="rem-kelas" required>
+                                <option value="">Pilih Kelas...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Materi Pokok / KD <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="rem-materi" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Jenis Kegiatan <span class="text-danger">*</span></label>
+                            <select class="form-select" id="rem-jenis" required>
+                                <option value="Remedial">Remedial</option>
+                                <option value="Pengayaan">Pengayaan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12 mt-4">
+                            <h6 class="fw-bold border-bottom pb-2 text-primary">Input Data Siswa</h6>
+                        </div>
+                        <div class="col-md-12 position-relative">
+                            <label class="form-label fw-bold">Cari Nama Siswa</label>
+                            <input type="text" class="form-control" id="rem-cari-siswa" placeholder="Ketik nama siswa..." autocomplete="off" onkeyup="cariSiswaRemedial()">
+                            <ul class="list-group position-absolute w-100 shadow-sm" id="rem-hasil-cari-siswa" style="z-index: 1000; display:none; max-height: 200px; overflow-y: auto;"></ul>
+                        </div>
+
+                        <div class="col-md-12 mt-3">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm text-center align-middle" style="font-size:0.9rem;">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="5%">No</th>
+                                            <th width="30%">Nama Siswa</th>
+                                            <th width="15%">Nilai Awal</th>
+                                            <th width="15%">Nilai Akhir</th>
+                                            <th width="20%">Status</th>
+                                            <th width="15%">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-rem-siswa-temp">
+                                        <tr><td colspan="6" class="text-muted">Pilih siswa melalui kotak pencarian di atas.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" onclick="simpanRemedial()"><i class="fa-solid fa-save"></i> Simpan Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="modalJadwal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form onsubmit="simpanData(event, 'Jadwal', 'modalJadwal')">
                     <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">Tambah Jadwal</h5><button type="button"
+                        <h5 class="modal-title">Tambah Agenda</h5><button type="button"
                             class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -1065,10 +2440,10 @@
                             class="form-control mb-2 bg-light" readonly>
                         <label>Materi / Pokok Bahasan</label><textarea name="Materi" id="jurnal-materi"
                             class="form-control mb-2" rows="2" required></textarea>
-                        <label>Permasalahan</label><textarea name="Permasalahan" id="jurnal-permasalahan"
-                            class="form-control mb-2" rows="2" placeholder="Opsional"></textarea>
-                        <label>Solusi</label><textarea name="Solusi" id="jurnal-solusi" class="form-control mb-2"
-                            rows="2" placeholder="Opsional"></textarea>
+                        <label>Catatan Masalah</label><textarea name="Permasalahan" id="jurnal-permasalahan"
+                            class="form-control mb-2" rows="2" placeholder="Isi Catatan Masalah dalam KBM"></textarea>
+                        <label>Solusi Masalah</label><textarea name="Solusi" id="jurnal-solusi"
+                            class="form-control mb-2" rows="2" placeholder="Isi Solusi Masalah"></textarea>
                         <label>Keterangan Tambahan</label><input type="text" name="Keterangan" id="jurnal-keterangan"
                             class="form-control mb-2" placeholder="Opsional">
                     </div>
@@ -1159,6 +2534,12 @@
                     <!-- Tabs inside Modal -->
                     <ul class="nav nav-tabs" id="bukaTabs">
                         <li class="nav-item">
+                            <button class="nav-link fw-bold text-dark" data-bs-toggle="tab"
+                                data-bs-target="#buka-rencana">
+                                <i class="fa-solid fa-list-check text-info"></i> Rencana Ajar
+                            </button>
+                        </li>
+                        <li class="nav-item">
                             <button class="nav-link active fw-bold text-dark" data-bs-toggle="tab"
                                 data-bs-target="#buka-absensi">
                                 <i class="fa-solid fa-user-check text-primary"></i> Absensi
@@ -1185,6 +2566,54 @@
                     </ul>
 
                     <div class="tab-content bg-white p-3 border border-top-0 rounded-bottom">
+                        <!-- Rencana Ajar -->
+                        <div class="tab-pane fade" id="buka-rencana">
+                            <form id="formRencanaAjar">
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">Materi Utama</label>
+                                        <input type="text" class="form-control" id="buka-rencana-materi-utama" placeholder="Contoh: Bilangan Bulat" oninput="syncRencanaToJurnal()" onblur="simpanRencanaAjar(true)">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">Sub Materi</label>
+                                        <input type="text" class="form-control" id="buka-rencana-sub-materi" placeholder="Contoh: Operasi Penjumlahan dan Pengurangan" oninput="syncRencanaToJurnal()" onblur="simpanRencanaAjar(true)">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-bold">Materi yang diajarkan <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="buka-rencana-materi-diajarkan" rows="2" placeholder="Detail materi yang diajarkan pada pertemuan ini..." required oninput="syncRencanaToJurnal()" onblur="simpanRencanaAjar(true)"></textarea>
+                                        <small class="text-muted">Wajib diisi. Kolom ini akan otomatis mengisi materi di Jurnal Mengajar dan UH.</small>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Model Pembelajaran</label>
+                                        <input type="text" class="form-control" id="buka-rencana-model" placeholder="Contoh: Problem Based Learning" onblur="simpanRencanaAjar(true)">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Metode Belajar</label>
+                                        <input type="text" class="form-control" id="buka-rencana-metode" placeholder="Contoh: Diskusi, Tanya Jawab" onblur="simpanRencanaAjar(true)">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Gaya Belajar</label>
+                                        <input type="text" class="form-control" id="buka-rencana-gaya" placeholder="Contoh: Visual, Auditori, Kinestetik" onblur="simpanRencanaAjar(true)">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-bold">Media Belajar</label>
+                                        <input type="text" class="form-control" id="buka-rencana-media" placeholder="Contoh: LCD Proyektor, Papan Tulis" onblur="simpanRencanaAjar(true)">
+                                    </div>
+                                </div>
+                                <div class="text-end" style="display:none;">
+                                    <button type="button" class="btn btn-primary" onclick="simpanRencanaAjar()"><i class="fa-solid fa-save"></i> Simpan Rencana Ajar</button>
+                                </div>
+                            </form>
+                        </div>
+
                         <!-- Absensi -->
                         <div class="tab-pane fade show active" id="buka-absensi">
                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -1252,34 +2681,36 @@
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="alert alert-success py-2 mb-0 flex-grow-1 me-3"><i
                                             class="fa-solid fa-bolt"></i> Ketik isi jurnal dan klik Simpan.</div>
-                                    <button type="button" class="btn btn-success"
-                                        onclick="exportJurnalHarianBukaJadwal()"><i class="fa-solid fa-file-excel"></i>
-                                        Unduh Jurnal Harian</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm w-100"
+                                        onclick="exportJurnalBukaJadwal()"><i class="fa-solid fa-file-excel"></i>
+                                        Unduh Excel Jurnal Agenda</button>
                                 </div>
                                 <form id="form-buka-jurnal" class="row g-3">
                                     <input type="hidden" id="buka-jur-id">
                                     <div class="col-12">
                                         <label class="form-label fw-bold">Materi yang Diajarkan</label>
                                         <textarea id="buka-jur-materi" class="form-control" rows="2"
-                                            placeholder="Tuliskan materi..."></textarea>
+                                            placeholder="Otomatis diisi dari Rencana Ajar..." readonly></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Permasalahan</label>
                                         <textarea id="buka-jur-permasalahan" class="form-control" rows="2"
-                                            placeholder="Permasalahan di kelas..."></textarea>
+                                            placeholder="Permasalahan di kelas..." onblur="simpanJurnalDariModal(true)"></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label fw-bold">Solusi</label>
                                         <textarea id="buka-jur-solusi" class="form-control" rows="2"
-                                            placeholder="Solusi yang diterapkan..."></textarea>
+                                            placeholder="Solusi yang diterapkan..." onblur="simpanJurnalDariModal(true)"></textarea>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label fw-bold">Keterangan Tambahan</label>
                                         <input type="text" id="buka-jur-keterangan" class="form-control"
-                                            placeholder="Opsional...">
+                                            placeholder="Opsional..." onblur="simpanJurnalDariModal(true)">
                                     </div>
-                                    <div class="col-12 text-end mt-3">
-                                        <button type="button" class="btn btn-primary" onclick="simpanJurnalDariModal()"><i class="fa-solid fa-save"></i> Simpan Jurnal</button>
+                                    <div class="col-12 text-end mt-3" style="display:none;">
+                                        <button type="button" class="btn btn-primary"
+                                            onclick="simpanJurnalDariModal()"><i class="fa-solid fa-save"></i> Simpan
+                                            Jurnal</button>
                                     </div>
                                 </form>
                             </div>
@@ -1324,6 +2755,28 @@
         </div>
 
         <input type="file" id="bukti-dukung-input" style="display: none;" accept="image/*,application/pdf">
+
+        <!-- Modal Import Pelanggaran -->
+        <div class="modal fade" id="modalImportPelanggaran" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="fa-solid fa-file-excel"></i> Import Daftar Pelanggaran</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted mb-3">Gunakan template yang disediakan untuk menghindari kegagalan proses import.</p>
+                        <button class="btn btn-outline-primary mb-3 w-100" onclick="downloadTemplatePelanggaran()"><i class="fa-solid fa-download"></i> Unduh Template Excel</button>
+                        <hr>
+                        <label class="form-label fw-bold">Upload File Excel (.xlsx)</label>
+                        <input type="file" id="file-import-pelanggaran" class="form-control" accept=".xlsx, .xls">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success w-100" onclick="prosesImportPelanggaran()"><i class="fa-solid fa-upload"></i> Proses Import</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal Import Siswa -->
         <div class="modal fade" id="modalImportSiswa" tabindex="-1">
@@ -1440,10 +2893,28 @@
 
         <!-- ExcelJS -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+        <script src="node_modules/docx/dist/index.iife.js"></script>
+        <script src="node_modules/file-saver/dist/FileSaver.min.js"></script>
+        <!-- Chart.js untuk Dashboard Analitik -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <!-- jsPDF + AutoTable untuk Cetak e-Rapor -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+        <!-- Mode Aplikasi: offline / online -->
+        <script>const APP_ENV = 'offline';</script>
+        <!-- Config Khusus Offline -->
+        <script src="config.js"></script>
+        <!-- Dexie.js untuk DB Lokal -->
+        <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.4/dist/dexie.min.js"></script>
+        <script src="db.js"></script>
 
         <script src="nilai.js?v=13"></script>
         <script src="laporan.js?v=13"></script>
-        <script src="main.js?v=13"></script>
+        <script src="main.js?v=14"></script>
+        <script src="guru-kelas-mapel.js?v=1"></script>
+        <script src="guru-bk.js?v=1"></script>
         <!-- PWA Service Worker Registration -->
         <script>
             if ('serviceWorker' in navigator) {
