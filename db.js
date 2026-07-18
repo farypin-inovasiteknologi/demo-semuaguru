@@ -163,6 +163,47 @@ const dbAPI = {
     return { success: true, message: "Data berhasil disimpan!" };
   },
 
+  cascadeEditInduk: async function (tipe, oldName, newName) {
+    if (!oldName || !newName || oldName === newName) return false;
+    
+    // 1. Update Relasi_Mapel (Induk)
+    await db.Relasi_Mapel.where('Induk').equals(oldName).modify(r => {
+       if (r.Tipe_Mode === tipe) r.Induk = newName;
+    });
+
+    if (tipe === 'Guru Mapel') {
+      // Induk = Mapel
+      await db.Jadwal.where('Mapel').equals(oldName).modify({ Mapel: newName });
+      await db.Jurnal.where('Mapel').equals(oldName).modify({ Mapel: newName });
+      await db.Absensi.where('Mapel').equals(oldName).modify({ Mapel: newName });
+      await db.Nilai.where('Mapel').equals(oldName).modify({ Mapel: newName });
+      await db.Nilai_Ujian.where('Mapel').equals(oldName).modify({ Mapel: newName });
+      await db.Arsip_Ujian.where('Mapel').equals(oldName).modify({ Mapel: newName });
+    } 
+    else if (tipe === 'Guru Kelas' || tipe === 'Guru BK') {
+      // Induk = Kelas
+      // Tahun Ajaran menyimpan Kelas sebagai Nama_TA
+      await db.Tahun_Ajaran.where('Nama_TA').equals(oldName).modify({ Nama_TA: newName });
+      
+      // Cascade ke semua tabel yang menyimpan Kelas
+      await db.Siswa.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Jadwal.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Jurnal.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Absensi.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Nilai.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Nilai_Ujian.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Arsip_Ujian.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Buku_Kasus.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.RPL_BK.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Home_Visit.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Arsip_BK.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Pelanggaran.where('Kelas').equals(oldName).modify({ Kelas: newName });
+      await db.Surat_Peringatan.where('Kelas').equals(oldName).modify({ Kelas: newName });
+    }
+    
+    return { success: true };
+  },
+
   deleteData: async function (sheetName, id) {
     const record = await db[sheetName].get(id);
     if (!record) return { success: false };
