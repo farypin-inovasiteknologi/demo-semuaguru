@@ -13,6 +13,15 @@
         'Bulan': document.getElementById('lap-abs-bulan').value
       };
       if (!filterValues['Kelas'] || !filterValues['Bulan']) { Swal.fire('Error', 'Pilih Kelas dan Bulan', 'error'); return; }
+    } else if (jenisLaporan === 'absensi_semester') {
+      sheetName = 'Absensi';
+      filterValues = {
+        'Kelas': document.getElementById('lap-abs-smt-kelas').value,
+        'Mapel': document.getElementById('lap-abs-smt-mapel').value,
+        'Semester': document.getElementById('lap-abs-smt-pilihan').value,
+        'Tahun_Ajaran': appState.activeTA
+      };
+      if (!filterValues['Kelas']) { Swal.fire('Error', 'Pilih Kelas', 'error'); return; }
     } else if (jenisLaporan === 'nilai_harian') {
       sheetName = 'Nilai';
       filterValues = {
@@ -42,13 +51,23 @@
       const filtered = data.filter(row => {
         let match = true;
         for (let key in filterValues) {
-          if (filterValues[key] && key !== 'Tahun_Ajaran') {
+          if (filterValues[key]) {
+            if (jenisLaporan === 'absensi_semester' && key === 'Semester') continue; // ditangani di bawah
             if (key === 'Bulan' && row['Tanggal']) {
               if (!row['Tanggal'].startsWith(filterValues[key])) match = false;
-            } else {
+            } else if (key === 'Tahun_Ajaran' && row['Tahun_Ajaran']) {
+               if (row['Tahun_Ajaran'] != filterValues[key]) match = false;
+            } else if (key !== 'Tahun_Ajaran') {
               if (row[key] != filterValues[key]) match = false;
             }
           }
+        }
+        if (jenisLaporan === 'absensi_semester' && match && row['Tanggal']) {
+          const m = parseInt(row['Tanggal'].split('-')[1]);
+          const isGanjil = m >= 7 && m <= 12;
+          const wantSmt = parseInt(filterValues['Semester']);
+          if (wantSmt === 1 && !isGanjil) match = false;
+          if (wantSmt === 2 && isGanjil) match = false;
         }
         return match;
       });
@@ -134,6 +153,95 @@
                  else if (stat === 'A') counts.A++;
              }
              rowValues.push(counts.H, counts.I, counts.S, counts.A);
+             
+              const row = worksheet.addRow(rowValues);
+              row.eachCell((cell, colNumber) => {
+                cell.font = normalFont;
+                cell.border = borderStyle;
+                if (colNumber === 3) cell.alignment = leftAlign;
+                else cell.alignment = centerAlign;
+              });
+              currentRow++;
+          });
+      } else if (jenisLaporan === 'absensi_semester') {
+         worksheet.getCell('A3').value = 'Kelas'; worksheet.getCell('B3').value = `: ${filterValues['Kelas']}`;
+         worksheet.getCell('A4').value = 'Mapel'; worksheet.getCell('B4').value = `: ${filterValues['Mapel'] || 'Semua'}`;
+         worksheet.getCell('A5').value = 'Semester'; worksheet.getCell('B5').value = `: ${filterValues['Semester'] === '1' ? '1 (Ganjil)' : '2 (Genap)'} (${filterValues['Tahun_Ajaran']})`;
+         worksheet.getCell('A3').font = subTitleFont; worksheet.getCell('A4').font = subTitleFont; worksheet.getCell('A5').font = subTitleFont;
+
+         let bulanList = filterValues['Semester'] === '1' 
+           ? [{m:7, n:'Juli'}, {m:8, n:'Agustus'}, {m:9, n:'September'}, {m:10, n:'Oktober'}, {m:11, n:'November'}, {m:12, n:'Desember'}]
+           : [{m:1, n:'Januari'}, {m:2, n:'Februari'}, {m:3, n:'Maret'}, {m:4, n:'April'}, {m:5, n:'Mei'}, {m:6, n:'Juni'}];
+
+         worksheet.mergeCells(1, 1, 1, 4 + (bulanList.length * 4) + 4);
+         const titleCell = worksheet.getCell('A1');
+         titleCell.value = 'REKAPITULASI ABSENSI SEMESTER';
+         titleCell.font = titleFont;
+         titleCell.alignment = centerAlign;
+
+         let cols = [{ width: 5 }, { width: 15 }, { width: 35 }, { width: 5 }];
+         for (let i=0; i < bulanList.length * 4 + 4; i++) cols.push({width: 5});
+         worksheet.columns = cols;
+
+         // Row 7 (Bulan / Total)
+         let r7 = ['NO', 'NIS', 'NAMA', 'JK'];
+         bulanList.forEach(b => { r7.push(b.n); r7.push('','',''); });
+         r7.push('TOTAL SMT'); r7.push('','','');
+         worksheet.getRow(7).values = r7;
+
+         // Row 8 (H I S A)
+         let r8 = ['','','',''];
+         bulanList.forEach(() => { r8.push('H','I','S','A'); });
+         r8.push('H','I','S','A');
+         worksheet.getRow(8).values = r8;
+
+         // Merge header cells
+         worksheet.mergeCells('A7:A8');
+         worksheet.mergeCells('B7:B8');
+         worksheet.mergeCells('C7:C8');
+         worksheet.mergeCells('D7:D8');
+         
+         let colStart = 5; // column E
+         bulanList.forEach(b => {
+            worksheet.mergeCells(7, colStart, 7, colStart + 3);
+            colStart += 4;
+         });
+         worksheet.mergeCells(7, colStart, 7, colStart + 3);
+
+         [7, 8].forEach(rIdx => {
+           worksheet.getRow(rIdx).eachCell((cell) => {
+             cell.font = headerFont;
+             cell.fill = headerFill;
+             cell.alignment = centerAlign;
+             cell.border = borderStyle;
+           });
+         });
+
+         let currentRow = 9;
+         siswaKelas.forEach((s, idx) => {
+             let rowValues = [idx+1, s.NIS, s.Nama, s.L_P || ''];
+             let totalCounts = { H: 0, I: 0, S: 0, A: 0 };
+             
+             bulanList.forEach(b => {
+                 let bCounts = { H: 0, I: 0, S: 0, A: 0 };
+                 const absBulanIni = filtered.filter(r => {
+                     if (String(r.NIS) !== String(s.NIS)) return false;
+                     if (!r.Tanggal) return false;
+                     const m = parseInt(r.Tanggal.split('-')[1]);
+                     return m === b.m;
+                 });
+                 
+                 absBulanIni.forEach(a => {
+                     let stat = a.Status ? a.Status.charAt(0).toUpperCase() : '';
+                     if (stat === 'H') { bCounts.H++; totalCounts.H++; }
+                     else if (stat === 'I') { bCounts.I++; totalCounts.I++; }
+                     else if (stat === 'S') { bCounts.S++; totalCounts.S++; }
+                     else if (stat === 'A') { bCounts.A++; totalCounts.A++; }
+                 });
+                 rowValues.push(bCounts.H || '-', bCounts.I || '-', bCounts.S || '-', bCounts.A || '-');
+             });
+             
+             rowValues.push(totalCounts.H || '-', totalCounts.I || '-', totalCounts.S || '-', totalCounts.A || '-');
              
              const row = worksheet.addRow(rowValues);
              row.eachCell((cell, colNumber) => {
@@ -322,12 +430,16 @@
     const canvas = cropperInstance.getCroppedCanvas({
       width: finalWidth,
       height: finalHeight,
-      
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high',
     });
 
-    const base64Data = canvas.toDataURL('image/jpeg', 0.6);
+    // Logo kiri/kanan gunakan PNG agar latar belakang transparan tetap terjaga
+    // Foto guru gunakan JPEG (lebih kecil, tidak perlu transparansi)
+    const isLogo = (targetId === 'kiri' || targetId === 'kanan');
+    const base64Data = isLogo
+      ? canvas.toDataURL('image/png')
+      : canvas.toDataURL('image/jpeg', 0.75);
 
     if (targetId === 'kiri') {
       document.getElementById('prev-logo-kiri').src = base64Data;
@@ -689,3 +801,184 @@ async function exportJurnalHarianBukaJadwal() {
   }
 }
 window.exportJurnalHarianBukaJadwal = exportJurnalHarianBukaJadwal;
+
+// ==========================================================
+// FITUR 3: CETAK E-RAPOR PDF (jsPDF + AutoTable)
+// ==========================================================
+async function cetakERapor() {
+  const kelas = document.getElementById('rap-kelas')?.value;
+  const smt = document.getElementById('rap-smt')?.value || '1';
+  if (!kelas) return Swal.fire('Error', 'Pilih kelas terlebih dahulu!', 'error');
+
+  showLoader();
+  try {
+    const { jsPDF } = window.jspdf;
+    const settings = await apiCall('getSettings', []);
+    const ta = appState.activeTA;
+
+    const siswaAll = await apiCall('readData', ['Siswa']);
+    const siswaTaKelas = siswaAll.filter(s => s.Tahun_Ajaran === ta && s.Kelas === kelas).sort((a, b) => a.Nama > b.Nama ? 1 : -1);
+    if (!siswaTaKelas.length) { hideLoader(); return Swal.fire('Info', 'Tidak ada siswa di kelas ini.', 'info'); }
+
+    const nilaiAll = await apiCall('readData', ['Nilai']);
+    const nilaiUjianAll = await apiCall('readData', ['Nilai_Ujian']);
+    const absenAll = await apiCall('readData', ['Absensi']);
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const logoKiri = settings['Logo_Kiri'] || null;
+    const logoKanan = settings['Logo_Kanan'] || null;
+    const namaInstansi = settings['Nama_Instansi'] || '';
+    const namaOPD = settings['Nama_OPD'] || '';
+    const namaSekolah = settings['Nama_Sekolah'] || 'UPT Sekolah Dasar';
+    const alamat = settings['Alamat_Lengkap'] || '';
+    const namaGuru = settings['Nama_Guru'] || '';
+    const nip = settings['NIP'] || '';
+
+    for (let idx = 0; idx < siswaTaKelas.length; idx++) {
+      const siswa = siswaTaKelas[idx];
+      if (idx > 0) doc.addPage();
+
+      // === KOP SURAT (Dinamis) ===
+      const cx = 105;
+      let kopY = 12;
+      
+      doc.setFont('helvetica', 'bold').setFontSize(14); // Instansi 14px
+      doc.text(namaInstansi || namaSekolah, cx, kopY, { align: 'center' });
+      kopY += 6;
+      
+      if (namaOPD && namaOPD.trim()) {
+        doc.setFontSize(14).setFont('helvetica', 'normal'); // OPD 14px
+        doc.text(namaOPD, cx, kopY, { align: 'center' });
+        kopY += 6;
+      }
+      
+      if (namaInstansi && namaInstansi.trim()) {
+        doc.setFont('helvetica', 'bold').setFontSize(17); // Sekolah 17px
+        doc.text(namaSekolah, cx, kopY, { align: 'center' });
+        kopY += 7;
+      }
+      
+      doc.setFont('helvetica', 'normal').setFontSize(9); // Alamat 9px
+      if (alamat && alamat.trim()) {
+        doc.text(alamat, cx, kopY, { align: 'center' });
+        kopY += 5;
+      }
+      
+      // Garis Bawah KOP
+      doc.setLineWidth(0.5).line(10, kopY + 1, 200, kopY + 1);
+      doc.setLineWidth(0.2).line(10, kopY + 2.5, 200, kopY + 2.5);
+      const garisBawahKop = kopY + 2.5;
+
+      // === LOGO KIRI & KANAN ===
+      // Gambar logo digambar SETELAH tahu tinggi total KOP agar proporsional
+      let startX = 10;
+      let logoMaxH = garisBawahKop - 10; // Sisakan margin atas dan bawah
+      let logoW = logoMaxH; // Asumsi logo rasio 1:1 (persegi)
+      let logoY = 8;
+      
+      if (logoKiri && logoKiri.startsWith('data:')) {
+        const fmtK = logoKiri.includes('data:image/png') ? 'PNG' : 'JPEG';
+        try { doc.addImage(logoKiri, fmtK, startX, logoY, logoW, logoMaxH); } catch(e) {}
+      }
+      if (logoKanan && logoKanan.startsWith('data:')) {
+        const fmtKn = logoKanan.includes('data:image/png') ? 'PNG' : 'JPEG';
+        try { doc.addImage(logoKanan, fmtKn, 200 - startX - logoW, logoY, logoW, logoMaxH); } catch(e) {}
+      }
+
+      // === JUDUL ===
+      doc.setFont('helvetica', 'bold').setFontSize(13);
+      doc.text('LAPORAN HASIL BELAJAR SISWA', cx, garisBawahKop + 9, { align: 'center' });
+      doc.setFontSize(10).setFont('helvetica', 'normal');
+      doc.text('Tahun Ajaran: ' + ta + '   |   Semester: ' + (smt === '1' ? 'Ganjil' : 'Genap') + '   |   Kelas: ' + kelas, cx, garisBawahKop + 16, { align: 'center' });
+
+      // === IDENTITAS SISWA ===
+      let y = garisBawahKop + 24;
+
+      doc.setFontSize(10);
+      const identitas = [
+        ['Nama Siswa', siswa.Nama || '-'],
+        ['NIS / NISN', siswa.NIS + ' / ' + (siswa.NISN || '-')],
+        ['Jenis Kelamin', siswa.L_P === 'L' ? 'Laki-laki' : 'Perempuan'],
+        ['Nama Orang Tua', (siswa.Nama_Ayah || '-') + ' / ' + (siswa.Nama_Ibu || '-')]
+      ];
+      identitas.forEach(function(row) {
+        doc.setFont('helvetica', 'bold').text(row[0], 12, y);
+        doc.setFont('helvetica', 'normal').text(': ' + row[1], 58, y);
+        y += 6;
+      });
+      y += 3;
+
+      // === TABEL NILAI HARIAN ===
+      const nilaiSiswa = nilaiAll.filter(n => n.NIS === siswa.NIS && n.Tahun_Ajaran === ta);
+      const mapelList = [...new Set(nilaiSiswa.map(n => n.Mapel))].sort();
+      const rataMapel = mapelList.map(mp => {
+        const rows = nilaiSiswa.filter(n => n.Mapel === mp);
+        const avgP = rows.reduce((s, n) => s + (parseFloat(n.Pengetahuan) || 0), 0) / (rows.length || 1);
+        const avgK = rows.reduce((s, n) => s + (parseFloat(n.Keterampilan) || 0), 0) / (rows.length || 1);
+        const avgS = rows.reduce((s, n) => s + (parseFloat(n.Sikap) || 0), 0) / (rows.length || 1);
+        return [mp, Math.round(avgP * 10) / 10, Math.round(avgK * 10) / 10, Math.round(avgS * 10) / 10];
+      });
+
+      doc.setFont('helvetica', 'bold').setFontSize(10).text('A. Nilai Harian (Rata-rata)', 12, y);
+      y += 4;
+      if (rataMapel.length) {
+        doc.autoTable({ startY: y, head: [['Mata Pelajaran', 'Pengetahuan', 'Keterampilan', 'Sikap']], body: rataMapel,
+          styles: { fontSize: 9, halign: 'center' }, columnStyles: { 0: { halign: 'left' } },
+          headStyles: { fillColor: [13, 110, 253] }, margin: { left: 12, right: 12 } });
+        y = doc.lastAutoTable.finalY + 6;
+      } else {
+        doc.setFont('helvetica', 'italic').setFontSize(9).text('(belum ada data nilai harian)', 14, y + 4);
+        y += 10;
+      }
+
+      // === TABEL NILAI UJIAN ===
+      const nilaiUjSiswa = nilaiUjianAll.filter(n => n.NIS === siswa.NIS && n.Tahun_Ajaran === ta && String(n.Semester) === String(smt));
+      const ujianRows = nilaiUjSiswa.map(n => [n.Jenis_Ujian, n.Mapel, n.Pengetahuan || '-', n.Keterampilan || '-', n.Sikap || '-']);
+      doc.setFont('helvetica', 'bold').setFontSize(10).text('B. Nilai Ujian / Sumatif', 12, y);
+      y += 4;
+      if (ujianRows.length) {
+        doc.autoTable({ startY: y, head: [['Jenis Ujian', 'Mapel', 'Pengetahuan', 'Keterampilan', 'Sikap']], body: ujianRows,
+          styles: { fontSize: 9, halign: 'center' }, columnStyles: { 0: { halign: 'left' }, 1: { halign: 'left' } },
+          headStyles: { fillColor: [25, 135, 84] }, margin: { left: 12, right: 12 } });
+        y = doc.lastAutoTable.finalY + 6;
+      } else {
+        doc.setFont('helvetica', 'italic').setFontSize(9).text('(belum ada data nilai ujian)', 14, y + 4);
+        y += 10;
+      }
+
+      // === REKAP KEHADIRAN ===
+      const absenSiswa = absenAll.filter(a => a.NIS === siswa.NIS && a.Tahun_Ajaran === ta);
+      const statAbs = { Hadir: 0, Sakit: 0, Izin: 0, Alfa: 0 };
+      absenSiswa.forEach(a => { if (statAbs[a.Status] !== undefined) statAbs[a.Status]++; });
+      doc.setFont('helvetica', 'bold').setFontSize(10).text('C. Rekap Kehadiran', 12, y);
+      y += 4;
+      doc.autoTable({ startY: y, head: [['Hadir', 'Sakit', 'Izin', 'Alfa', 'Total Pertemuan']],
+        body: [[statAbs.Hadir, statAbs.Sakit, statAbs.Izin, statAbs.Alfa, absenSiswa.length]],
+        styles: { fontSize: 9, halign: 'center' }, headStyles: { fillColor: [220, 53, 69] }, margin: { left: 12, right: 12 } });
+      y = doc.lastAutoTable.finalY + 10;
+
+      // === TANDA TANGAN ===
+      const tglCetak = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      doc.setFont('helvetica', 'normal').setFontSize(10);
+      doc.text('Dicetak tanggal: ' + tglCetak, 12, y);
+      y += 10;
+      doc.text('Guru Pengampu,', 150, y, { align: 'center' });
+      y += 30;
+      doc.setFont('helvetica', 'bold').text(namaGuru, 150, y, { align: 'center' });
+      doc.setFont('helvetica', 'normal').text('NIP. ' + nip, 150, y + 5, { align: 'center' });
+    }
+
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'eRapor_' + kelas + '_Smt' + smt + '_' + ta.replace('/', '-') + '.pdf';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    hideLoader();
+    Swal.fire('Sukses', 'e-Rapor PDF untuk ' + siswaTaKelas.length + ' siswa berhasil dibuat!', 'success');
+  } catch (err) {
+    hideLoader(); console.error(err);
+    Swal.fire('Error', 'Gagal membuat PDF: ' + err.message, 'error');
+  }
+}
+window.cetakERapor = cetakERapor;
