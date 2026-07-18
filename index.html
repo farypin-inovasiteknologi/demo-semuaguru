@@ -1543,13 +1543,13 @@
                                             }
 
                                             document.addEventListener('DOMContentLoaded', () => {
-                                                if (typeof APP_CONFIG !== 'undefined') {
-                                                    document.getElementById('helpdesk-name').textContent = APP_CONFIG.HELPDESK_NAME || "Support";
-                                                    const wa = APP_CONFIG.HELPDESK_WA || "";
+                                                if (typeof HELPDESK_CONFIG !== 'undefined') {
+                                                    document.getElementById('helpdesk-name').textContent = HELPDESK_CONFIG.NAME || "Support";
+                                                    const wa = HELPDESK_CONFIG.WA || "";
                                                     const waClean = wa.replace(/[^0-9]/g, '');
                                                     document.getElementById('helpdesk-wa').href = `https://wa.me/${waClean}`;
-                                                    document.getElementById('helpdesk-email').href = `mailto:${APP_CONFIG.HELPDESK_EMAIL || ""}`;
-                                                    document.getElementById('helpdesk-web').href = APP_CONFIG.HELPDESK_WEBSITE || "#";
+                                                    document.getElementById('helpdesk-email').href = `mailto:${HELPDESK_CONFIG.EMAIL || ""}`;
+                                                    document.getElementById('helpdesk-web').href = HELPDESK_CONFIG.WEBSITE || "#";
                                                 }
                                             });
                                         </script>
