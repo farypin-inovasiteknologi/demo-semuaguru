@@ -7,6 +7,16 @@ const TENANT_REGISTRY = {
   "demo": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec"
 };
 
+// ==========================================
+// KONFIGURASI HELPDESK (Aman untuk Online/Publik)
+// ==========================================
+const HELPDESK_CONFIG = {
+  NAME: "Farypin Inovasi Teknologi",
+  WA: "6285219901909",
+  EMAIL: "farypintech2026@gmail.com",
+  WEBSITE: "https://farypin-inovasiteknologi.com"
+};
+
 let GAS_API_URL = "";
 
 function openExternal(url) {
@@ -426,7 +436,7 @@ function setMode(mode) {
     appState.modeAktif = res;
     document.getElementById('mode-badge').innerText = `Mode: ${res}`;
     updateModeBadges(res);
-    
+
     // Alihkan tampilan ke tab yang sesuai dengan mode
     if (res === 'Guru Mapel') {
       new bootstrap.Tab(document.querySelector('button[data-bs-target="#tab-gurumapel"]')).show();
@@ -443,6 +453,10 @@ function setMode(mode) {
 }
 
 function simpanPengaturanSistem() {
+  if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
+    Swal.fire('Dikunci', 'Pengaturan Sistem tidak bisa diubah di versi Online. Harap ubah melalui versi Offline.', 'info');
+    return;
+  }
   showLoader();
   const data = {
     'Nama_Instansi': document.getElementById('peng-instansi').value,
@@ -464,6 +478,10 @@ function simpanPengaturanSistem() {
 }
 
 function simpanPengaturanProfil() {
+  if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
+    Swal.fire('Dikunci', 'Pengaturan Profil tidak bisa diubah di versi Online. Harap ubah melalui versi Offline.', 'info');
+    return;
+  }
   showLoader();
   const data = {
     'NIP': document.getElementById('peng-nip').value,
@@ -492,11 +510,18 @@ function simpanPengaturanAkun() {
   const p = document.getElementById('peng-password').value;
   const bg = document.getElementById('base64-bg-login').value;
 
-  if (!u || !p) { Swal.fire('Error', 'Username dan Password tidak boleh kosong!', 'error'); return; }
+  if (!p) { Swal.fire('Error', 'Password tidak boleh kosong!', 'error'); return; }
 
-  let dataSave = { 'Username': u, 'Password': p };
-  if (bg) {
-    dataSave['Background_Login'] = bg;
+  let dataSave = {};
+  if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
+    // Online HANYA boleh ubah Password
+    dataSave = { 'Password': p };
+  } else {
+    // Offline boleh simpan background, tapi password ditolak oleh db.js secara otomatis
+    dataSave = { 'Username': u, 'Password': p };
+    if (bg) {
+      dataSave['Background_Login'] = bg;
+    }
   }
 
   showLoader();
