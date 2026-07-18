@@ -1,4 +1,4 @@
-const CACHE_NAME = 'semua-guru-v2';
+const CACHE_NAME = 'semua-guru-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -6,6 +6,8 @@ const urlsToCache = [
   './main.js',
   './nilai.js',
   './laporan.js',
+  './guru-bk.js',
+  './guru-kelas-mapel.js',
   './logosemuaguru.png'
 ];
 
@@ -24,7 +26,7 @@ self.addEventListener('install', (event) => {
 // Intercept Request & Strategi Network First / Cache Fallback
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || event.request.url.includes('script.google.com')) return;
-  
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
