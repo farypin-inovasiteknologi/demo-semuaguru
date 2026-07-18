@@ -42,7 +42,7 @@ window.getBase64 = function (file) {
 }
 
 async function apiCall(action, payload = []) {
-  const writeActions = ['insertData', 'deleteData', 'importSiswaBatch', 'autoSaveAbsensi', 'autoSaveJadwalMateri', 'autoSaveNilai', 'autoSaveNilaiUjian', 'batchSaveNilaiUjian', 'resetKonversiNilaiUjian', 'updateBuktiDukung', 'insertBukuKasus', 'deleteBukuKasus', 'hapusDataTahunAjaran'];
+  const writeActions = ['insertData', 'deleteData', 'importSiswaBatch', 'autoSaveAbsensi', 'autoSaveJadwalMateri', 'autoSaveNilai', 'autoSaveNilaiUjian', 'batchSaveNilaiUjian', 'resetKonversiNilaiUjian', 'updateBuktiDukung', 'insertBukuKasus', 'deleteBukuKasus', 'hapusDataTahunAjaran', 'cascadeEditInduk'];
 
   if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online' && writeActions.includes(action)) {
     Swal.fire('Akses Dibatasi', 'Tidak bisa ubah/hapus data di versi online, harap lakukan melalui versi offline di laptop Anda.', 'info');
@@ -717,7 +717,10 @@ function renderRelasiCards(tipe, containerId, labelInduk, labelAnak) {
           <div class="col-md-12 mb-3"><div class="card shadow-sm border-0 hover-float">
               <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold"><i class="fa-solid fa-chalkboard-user"></i> Kelas: ${induk}</h5>
-                <button class="btn btn-sm btn-outline-light" onclick="hapusIndukRelasi('${tipe}','${induk}')"><i class="fa-solid fa-trash"></i> Hapus Kelas</button>
+                <div>
+                  <button class="btn btn-sm btn-outline-warning text-dark me-1" onclick="editIndukRelasi('${tipe}','${induk}', 'Kelas')"><i class="fa-solid fa-edit"></i> Edit</button>
+                  <button class="btn btn-sm btn-outline-light" onclick="hapusIndukRelasi('${tipe}','${induk}')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                </div>
               </div>
               <div class="card-body row">
                 <div class="col-md-4 border-end text-center p-3">
@@ -749,9 +752,12 @@ function renderRelasiCards(tipe, containerId, labelInduk, labelAnak) {
 
       htmlAll += `
           <div class="col-md-6 mb-3"><div class="card shadow-sm border-0 h-100 hover-float">
-              <div class="card-header bg-gradient-success text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold"><i class="fa-solid fa-book"></i> Mapel: ${induk}</h5>
-                <button class="btn btn-sm btn-outline-light" onclick="hapusIndukRelasi('${tipe}','${induk}')"><i class="fa-solid fa-trash"></i> Hapus Mapel</button>
+              <div class="card-header bg-gradient-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="fa-solid fa-book-open"></i> Mapel: ${induk}</h5>
+                <div>
+                  <button class="btn btn-sm btn-outline-warning text-dark me-1" onclick="editIndukRelasi('${tipe}','${induk}', 'Mata Pelajaran')"><i class="fa-solid fa-edit"></i> Edit</button>
+                  <button class="btn btn-sm btn-outline-light" onclick="hapusIndukRelasi('${tipe}','${induk}')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                </div>
               </div>
               <div class="card-body">
                 <h6 class="fw-bold mb-2">Daftar Kelas yang Diajar</h6>
@@ -766,7 +772,10 @@ function renderRelasiCards(tipe, containerId, labelInduk, labelAnak) {
           <div class="col-md-4 mb-3"><div class="card shadow-sm border-0 h-100 hover-float">
               <div class="card-header bg-gradient-warning text-dark d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 fw-bold"><i class="fa-solid fa-users-rectangle"></i> ${induk}</h5>
-                <button class="btn btn-sm btn-outline-dark" onclick="hapusIndukRelasi('${tipe}','${induk}')"><i class="fa-solid fa-trash"></i></button>
+                <div>
+                  <button class="btn btn-sm btn-outline-warning text-dark me-1" onclick="editIndukRelasi('${tipe}','${induk}', 'Kelas Binaan')"><i class="fa-solid fa-edit"></i> Edit</button>
+                  <button class="btn btn-sm btn-outline-dark" onclick="hapusIndukRelasi('${tipe}','${induk}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
               </div>
               <div class="card-body text-center">
                 <h6 class="fw-bold mb-3 text-muted">Kelola Siswa Binaan</h6>
@@ -814,16 +823,73 @@ function simpanRelasi() {
 }
 
 function hapusIndukRelasi(tipe, induk) {
-  Swal.fire({ title: 'Hapus Kamar?', html: '<div class="text-danger mb-2">Peringatan: Hati-hati dalam menghapus data. Data yang telah dihapus tidak dapat dikembalikan lagi.</div>Apakah Anda yakin ingin menghapus kamar beserta seluruh isinya?', icon: 'warning', showCancelButton: true }).then(r => {
-    if (r.isConfirmed) {
-      const toDel = appState.relasi.filter(x => x.Tipe_Mode === tipe && x.Induk === induk);
-      let count = 0; showLoader();
-      toDel.forEach(item => {
-        apiCall('deleteData', ['Relasi_Mapel', item.ID]).then(() => {
-          count++; if (count === toDel.length) refreshRelasiData();
-        }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
-      });
-      if (toDel.length === 0) hideLoader();
+  if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
+    Swal.fire('Akses Dibatasi', 'Tidak bisa ubah/hapus data di versi online, harap lakukan melalui versi offline di laptop Anda.', 'info');
+    return;
+  }
+  Swal.fire({
+    title: 'Hapus Data?',
+    text: `Semua data terkait ${induk} akan terhapus. Lanjutkan?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ya, Hapus',
+    cancelButtonText: 'Batal'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      showLoader();
+
+      // Hapus data anak secara lokal
+      const items = appState.relasi.filter(r => r.Tipe_Mode === tipe && r.Induk === induk);
+      for (let item of items) {
+        await apiCall('deleteData', ['Relasi_Mapel', item.ID]);
+      }
+
+      // Hapus Tahun Ajaran jika Guru Kelas atau BK
+      if (tipe === 'Guru Kelas' || tipe === 'Guru BK') {
+        const ta = appState.tahunAjaran.find(t => t.Nama_TA === induk);
+        if (ta) {
+          await apiCall('deleteData', ['Tahun_Ajaran', ta.ID]);
+        }
+      }
+
+      await refreshRelasiData();
+      hideLoader();
+      Swal.fire('Terhapus', 'Data berhasil dihapus.', 'success');
+    }
+  });
+}
+
+function editIndukRelasi(tipe, oldName, labelType) {
+  if (typeof APP_ENV !== 'undefined' && APP_ENV === 'online') {
+    Swal.fire('Akses Dibatasi', 'Tidak bisa ubah/hapus data di versi online, harap lakukan melalui versi offline di laptop Anda.', 'info');
+    return;
+  }
+  Swal.fire({
+    title: `Edit Nama ${labelType}`,
+    text: `Anda akan mengubah nama '${oldName}'. Perubahan ini akan menjalar ke seluruh data Siswa, Jadwal, Nilai, dll yang menggunakan nama ini.`,
+    input: 'text',
+    inputValue: oldName,
+    showCancelButton: true,
+    confirmButtonText: 'Simpan Perubahan',
+    cancelButtonText: 'Batal',
+    inputValidator: (value) => {
+      if (!value) return 'Nama tidak boleh kosong!';
+      if (value === oldName) return 'Nama belum diubah!';
+    }
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      const newName = result.value.trim();
+      showLoader();
+      try {
+        await apiCall('cascadeEditInduk', [tipe, oldName, newName]);
+        await refreshRelasiData();
+        hideLoader();
+        Swal.fire('Berhasil!', `Data '${oldName}' telah diubah menjadi '${newName}' beserta semua data terkait.`, 'success');
+      } catch (err) {
+        console.error(err);
+        hideLoader();
+        Swal.fire('Error', err.message, 'error');
+      }
     }
   });
 }
