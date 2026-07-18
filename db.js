@@ -101,7 +101,6 @@ const dbAPI = {
     
     // Validasi login
     if (config['Username'] === u && config['Password_Hash'] === pHash) return true;
-    if (u === "pariyanto99@admin.sma.belajar.id" && config['Password_Hash'] === pHash) return true;
     
     // Fallback keamanan sementara (jika migrasi dr database versi lama yg masih nyimpan 'Password' biasa)
     if (config['Password'] && config['Password'] === p) return true;
@@ -109,9 +108,10 @@ const dbAPI = {
     return false;
   },
 
-  sendPasswordToEmail: async function (email) {
-    if (typeof APP_CONFIG !== 'undefined') {
-      return { success: false, message: `[PENTING] Demi keamanan, password offline telah dienkripsi dan tidak bisa ditampilkan. Jika Anda lupa password, silakan hubungi Helpdesk via WA: ${APP_CONFIG.HELPDESK_WA} atau Email: ${APP_CONFIG.HELPDESK_EMAIL}.` };
+  sendPasswordToEmail: async function(email) {
+    const config = await this.getSettings();
+    if (config['Username'] === email) {
+      return { success: false, message: `[PENTING] Demi keamanan, password offline telah dienkripsi dan tidak bisa ditampilkan. Jika Anda lupa password, silakan hubungi Helpdesk via WA: ${HELPDESK_CONFIG.WA} atau Email: ${HELPDESK_CONFIG.EMAIL}.` };
     }
     return { success: false, message: "Hubungi administrator untuk melakukan reset password." };
   },
