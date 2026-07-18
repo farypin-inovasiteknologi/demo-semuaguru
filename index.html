@@ -2902,8 +2902,8 @@
         <script
             src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-        <!-- Mode Aplikasi: offline / online -->
-        <script>const APP_ENV = 'offline';</script>
+        <!-- Mode Aplikasi: otomatis deteksi online/offline -->
+        <script>const APP_ENV = (window.location.protocol === 'file:') ? 'offline' : 'online';</script>
         <!-- Config Khusus Offline -->
         <script src="config.js"></script>
         <!-- Dexie.js untuk DB Lokal -->
