@@ -975,6 +975,21 @@
                                         <input type="hidden" id="base64-logo-kanan">
                                     </div>
 
+                                    <div class="col-12 text-center border p-3 rounded bg-light mt-3 position-relative">
+                                        <label class="form-label fw-bold d-block">Upload Background Login</label>
+                                        <div class="position-relative d-inline-block">
+                                            <img id="prev-bg-login" class="img-thumbnail rounded mb-2 shadow-sm"
+                                                style="width:240px; height:135px; object-fit:cover; background:#fff; display:none;"
+                                                src="" alt="Background Login">
+                                            <button type="button" id="btn-hapus-bg" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="hapusGambar('bg')" title="Hapus Background" style="display:none;"><i class="fa-solid fa-trash"></i></button>
+                                        </div>
+                                        <input type="file" id="file-bg-login" class="form-control form-control-sm mx-auto w-50 mt-2" accept="image/*"
+                                            onchange="previewBackground(this)">
+                                        <small class="text-muted d-block mt-1">Biarkan kosong jika tidak ingin
+                                            mengubah</small>
+                                        <input type="hidden" id="base64-bg-login">
+                                    </div>
+
                                     <div class="col-12 text-end mt-4"><button type="button" class="btn btn-primary px-4"
                                             onclick="simpanPengaturanSistem()"><i class="fa-solid fa-save"></i> Simpan
                                             Sistem</button></div>
@@ -999,21 +1014,7 @@
                                                     class="fa-solid fa-eye"></i></button>
                                         </div>
                                     </div>
-                                    <div class="col-md-6 text-center border p-3 rounded bg-light mt-3 position-relative">
-                                        <label class="form-label fw-bold d-block">Upload Background Login</label>
-                                        <div class="position-relative d-inline-block">
-                                            <img id="prev-bg-login" class="img-thumbnail rounded mb-2 shadow-sm"
-                                                style="width:240px; height:135px; object-fit:cover; background:#fff; display:none;"
-                                                src="" alt="Background Login">
-                                            <button type="button" id="btn-hapus-bg" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" onclick="hapusGambar('bg')" title="Hapus Background" style="display:none;"><i class="fa-solid fa-trash"></i></button>
-                                        </div>
-                                        <input type="file" id="file-bg-login" class="form-control form-control-sm mx-auto w-75 mt-2" accept="image/*"
-                                            onchange="previewBackground(this)">
-                                        <small class="text-muted d-block mt-1">Biarkan kosong jika tidak ingin
-                                            mengubah</small>
-                                        <input type="hidden" id="base64-bg-login">
-                                    </div>
-                                    <div class="col-12 text-end">
+                                    <div class="col-12 text-end mt-4">
                                         <button type="button" class="btn btn-primary"
                                             onclick="simpanPengaturanAkun()"><i class="fa-solid fa-key"></i> Simpan
                                             Akun</button>
