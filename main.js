@@ -2,9 +2,9 @@
 // REGISTRI URL DATABASE MULTI-TENANT
 // ==========================================
 const TENANT_REGISTRY = {
-  "guru01": "https://script.google.com/macros/s/AKfycbyvQObXtPHsW2uE8XOd4uDq8dyzpvRg_Mxnv2lvPUr0FWNPA6G7V-BoFNnVrFhI_rwPnw/exec",
-  "guru02": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec",
-  "demo": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec"
+  "demo": "https://script.google.com/macros/s/AKfycbyvQObXtPHsW2uE8XOd4uDq8dyzpvRg_Mxnv2lvPUr0FWNPA6G7V-BoFNnVrFhI_rwPnw/exec",
+  "guru01": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec",
+  "guru02": "https://script.google.com/macros/s/GANTI_DENGAN_URL_LAIN/exec"
 };
 
 // ==========================================
@@ -447,7 +447,7 @@ function setMode(mode) {
     } else if (res === 'Guru BK') {
       new bootstrap.Tab(document.querySelector('button[data-bs-target="#tab-gurubk"]')).show();
     } else {
-      new bootstrap.Tab(document.querySelector('button[data-bs-target="#tab-siswa"]')).show();
+      new bootstrap.Tab(document.querySelector('button[data-bs-target="#tab-gurukelas"]')).show();
     }
 
     Swal.fire('Berhasil', `Mode Mengajar diset ke: ${res}`, 'success');
@@ -470,13 +470,18 @@ function simpanPengaturanSistem() {
     'Email_Sekolah': document.getElementById('peng-email').value,
     'Website_Sekolah': document.getElementById('peng-website').value,
     'Logo_Kiri': document.getElementById('base64-logo-kiri').value,
-    'Logo_Kanan': document.getElementById('base64-logo-kanan').value
+    'Logo_Kanan': document.getElementById('base64-logo-kanan').value,
+    'Background_Login': document.getElementById('base64-bg-login').value
   };
   apiCall('saveMultipleSettings', [data]).then(() => {
     hideLoader();
     if (data['Logo_Kiri']) document.getElementById('landing-logo-kiri').src = data['Logo_Kiri'];
     if (data['Logo_Kanan']) document.getElementById('landing-logo-kanan').src = data['Logo_Kanan'];
     if (data['Nama_Sekolah']) document.getElementById('landing-nama-sekolah').innerText = data['Nama_Sekolah'];
+    if (data['Background_Login']) {
+      document.getElementById('landing-container').style.backgroundImage = `url(${data['Background_Login']})`;
+      document.getElementById('login-container').style.backgroundImage = `url(${data['Background_Login']})`;
+    }
     Swal.fire('Tersimpan', 'Pengaturan sistem diperbarui', 'success');
   }).catch(err => { console.error(err); hideLoader(); Swal.fire('Error', err.message || 'Terjadi kesalahan', 'error'); });
 }
@@ -512,7 +517,6 @@ function simpanPengaturanProfil() {
 function simpanPengaturanAkun() {
   const u = document.getElementById('peng-username').value;
   const p = document.getElementById('peng-password').value;
-  const bg = document.getElementById('base64-bg-login').value;
 
   if (!p) { Swal.fire('Error', 'Password tidak boleh kosong!', 'error'); return; }
 
@@ -521,11 +525,8 @@ function simpanPengaturanAkun() {
     // Online HANYA boleh ubah Password
     dataSave = { 'Password': p };
   } else {
-    // Offline boleh simpan background, tapi password ditolak oleh db.js secara otomatis
+    // Offline password ditolak oleh db.js secara otomatis
     dataSave = { 'Username': u, 'Password': p };
-    if (bg) {
-      dataSave['Background_Login'] = bg;
-    }
   }
 
   showLoader();
